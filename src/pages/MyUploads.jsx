@@ -1,0 +1,343 @@
+import { useState, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
+import Navbar from '../components/Navbar'
+import Footer from '../components/Footer'
+import { useAuth } from '../context/AuthContext'
+import { supabase } from '../supabaseClient'
+
+function BackButton() {
+  const navigate = useNavigate()
+  const [hovered, setHovered] = useState(false)
+  return (
+    <button onClick={() => navigate(-1)} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+      style={{ width: '92px', height: '40px', borderRadius: '8px', border: '1px solid ' + (hovered ? '#F3F3F4' : '#E8E8EA'), backgroundColor: hovered ? '#F9F9F9' : '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.2s ease', marginBottom: '32px' }}>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#141415" strokeWidth="2" strokeLinecap="round">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      <span style={{ fontSize: '14px', color: '#141415' }}>Back</span>
+    </button>
+  )
+}
+
+function UserAvatar({ avatarUrl, name, size }) {
+  const s = size || 32
+  const initial = (name || 'U').charAt(0).toUpperCase()
+  if (avatarUrl) return <img src={avatarUrl} alt={name} style={{ width: s, height: s, borderRadius: '9999px', objectFit: 'cover' }} />
+  return (
+    <div style={{ width: s, height: s, borderRadius: '9999px', backgroundColor: '#0097FF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFFFFF', fontSize: s * 0.4, fontWeight: '700', flexShrink: 0 }}>
+      {initial}
+    </div>
+  )
+}
+
+function MyUploads() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { user } = useAuth()
+
+  // Read tab from navigation state (set by CreateMeme and CreateBlog)
+  const defaultTab = location.state?.activeTab || 'events'
+  const [activeTab, setActiveTab] = useState(defaultTab)
+  const [eventFilter, setEventFilter] = useState('running')
+  const [uploads, setUploads] = useState({ events: [], memes: [], blogs: [] })
+  const [loading, setLoading] = useState(true)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [viewItem, setViewItem] = useState(null)
+  const [successMsg, setSuccessMsg] = useState('')
+
+  useEffect(() => {
+    fetchUploads()
+  }, [user])
+
+  const fetchUploads = async () => {
+    setLoading(true)
+    try {
+      const [evRes, memRes, blogRes] = await Promise.all([
+        supabase.from('events').select('*').order('created_at', { ascending: false }),
+        supabase.from('memes').select('*').order('created_at', { ascending: false }),
+        supabase.from('blogs').select('*').order('created_at', { ascending: false }),
+      ])
+      setUploads({
+        events: evRes.data || [],
+        memes: memRes.data || [],
+        blogs: blogRes.data || [],
+      })
+    } catch (err) {
+      console.error('Fetch error:', err)
+    }
+    setLoading(false)
+  }
+
+  const now = new Date()
+  const runningEvents = uploads.events.filter((e) => !e.event_date || new Date(e.event_date) >= now)
+  const pastEvents = uploads.events.filter((e) => e.event_date && new Date(e.event_date) < now)
+
+  const currentItems = activeTab === 'events'
+    ? (eventFilter === 'running' ? runningEvents : pastEvents)
+    : uploads[activeTab]
+
+  const handleDelete = async (item) => {
+    const table = activeTab === 'events' ? 'events' : activeTab === 'memes' ? 'memes' : 'blogs'
+    try {
+      await supabase.from(table).delete().eq('id', item.id)
+      setUploads((prev) => ({ ...prev, [activeTab]: prev[activeTab].filter((i) => i.id !== item.id) }))
+      setSuccessMsg('Deleted "' + item.title + '"')
+      setTimeout(() => setSuccessMsg(''), 3000)
+    } catch (err) {
+      console.error('Delete error:', err)
+    }
+    setDeleteTarget(null)
+  }
+
+  const tabs = [
+    { key: 'events', label: 'Events', count: uploads.events.length },
+    { key: 'blogs', label: 'Blog', count: uploads.blogs.length },
+    { key: 'memes', label: 'Memes', count: uploads.memes.length },
+  ]
+
+  return (
+    <div style={{ backgroundColor: '#FFFFFF', minHeight: '100vh' }}>
+      {successMsg && (
+        <div style={{ position: 'fixed', top: '24px', right: '24px', zIndex: 3000, backgroundColor: '#141415', color: '#FFFFFF', borderRadius: '12px', padding: '14px 24px', fontSize: '14px', fontWeight: '500', boxShadow: '0 8px 24px rgba(0,0,0,0.2)' }}>
+          ✅ {successMsg}
+        </div>
+      )}
+
+      <div style={{ maxWidth: '1440px', margin: '0 auto' }}><Navbar /></div>
+
+      <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '48px 100px 80px' }}>
+        <BackButton />
+
+        <h1 style={{ fontSize: '40px', fontWeight: '700', color: '#141415', textAlign: 'center', marginBottom: '8px' }}>My Uploads</h1>
+        <p style={{ fontSize: '16px', color: '#7E7E82', textAlign: 'center', marginBottom: '40px' }}>Manage all your uploaded events, memes and blogs.</p>
+
+        {/* Tabs */}
+        <div style={{ display: 'flex', borderBottom: '1px solid #E8E8EA', marginBottom: '32px' }}>
+          {tabs.map((tab) => (
+            <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+              style={{ padding: '12px 32px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: '500', color: activeTab === tab.key ? '#141415' : '#59595C', borderBottom: activeTab === tab.key ? '2px solid #141415' : '2px solid transparent', marginBottom: '-1px', transition: 'all 0.2s ease' }}>
+              {tab.label} ({tab.count})
+            </button>
+          ))}
+        </div>
+
+        {/* Event sub-filter */}
+        {activeTab === 'events' && (
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
+            {['running', 'past'].map((f) => (
+              <button key={f} onClick={() => setEventFilter(f)}
+                style={{ height: '36px', padding: '0 20px', borderRadius: '8px', border: '1px solid ' + (eventFilter === f ? '#0097FF' : '#E8E8EA'), backgroundColor: eventFilter === f ? '#EFF9FF' : '#FFFFFF', color: eventFilter === f ? '#0097FF' : '#59595C', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}>
+                {f === 'running' ? '🟢 Running Events' : '⏰ Past Events'} ({f === 'running' ? runningEvents.length : pastEvents.length})
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Grid */}
+        {loading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '80px 0' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {[0,1,2].map((i) => <div key={i} style={{ width: '12px', height: '12px', borderRadius: '9999px', backgroundColor: '#0097FF', animation: 'bounce 0.6s ease ' + (i * 0.1) + 's infinite alternate' }} />)}
+            </div>
+          </div>
+        ) : currentItems.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '80px 0' }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📭</div>
+            <h3 style={{ fontSize: '24px', fontWeight: '600', color: '#141415', marginBottom: '8px' }}>No uploads yet</h3>
+            <p style={{ fontSize: '16px', color: '#7E7E82', marginBottom: '24px' }}>Start uploading to see your content here.</p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button onClick={() => navigate('/events/create')}
+                style={{ height: '44px', padding: '0 20px', borderRadius: '8px', backgroundColor: '#0097FF', color: '#FFFFFF', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: '600' }}>
+                📅 Create Event
+              </button>
+              <button onClick={() => navigate('/memes/create')}
+                style={{ height: '44px', padding: '0 20px', borderRadius: '8px', backgroundColor: '#FFFFFF', color: '#414143', border: '1px solid #E8E8EA', cursor: 'pointer', fontSize: '14px' }}>
+                😂 Upload Meme
+              </button>
+              <button onClick={() => navigate('/blog/create')}
+                style={{ height: '44px', padding: '0 20px', borderRadius: '8px', backgroundColor: '#FFFFFF', color: '#414143', border: '1px solid #E8E8EA', cursor: 'pointer', fontSize: '14px' }}>
+                ✍️ Write Blog
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px' }}>
+            {currentItems.map((item) => (
+              <UploadCard key={item.id} item={item} type={activeTab}
+                onView={() => setViewItem(item)}
+                onDelete={() => setDeleteTarget(item)} />
+            ))}
+          </div>
+        )}
+      </div>
+
+      <style>{`@keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-12px); } }`}</style>
+      <div style={{ maxWidth: '1440px', margin: '0 auto' }}><Footer /></div>
+
+      {/* Delete Confirm Modal */}
+      {deleteTarget && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: '420px', backgroundColor: '#FFFFFF', borderRadius: '16px', padding: '32px', boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#141415', marginBottom: '8px' }}>Delete Item</h3>
+            <p style={{ fontSize: '14px', color: '#7E7E82', marginBottom: '24px' }}>
+              Are you sure you want to delete "<strong>{deleteTarget.title}</strong>"? This cannot be undone.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <button onClick={() => setDeleteTarget(null)}
+                style={{ height: '40px', padding: '0 20px', borderRadius: '8px', border: '1px solid #E8E8EA', backgroundColor: '#FFFFFF', fontSize: '14px', cursor: 'pointer' }}>
+                Cancel
+              </button>
+              <button onClick={() => handleDelete(deleteTarget)}
+                style={{ height: '40px', padding: '0 20px', borderRadius: '8px', border: 'none', backgroundColor: '#AE2012', color: '#FFFFFF', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Modal */}
+      {viewItem && (
+        <ViewModal item={viewItem} type={activeTab} onClose={() => setViewItem(null)} navigate={navigate} />
+      )}
+    </div>
+  )
+}
+
+function UploadCard({ item, type, onView, onDelete }) {
+  const [hovered, setHovered] = useState(false)
+  const imageUrl = item.image_url || item.cover_image_url || 'https://picsum.photos/seed/' + item.id + '/296/200'
+  return (
+    <div onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+      style={{ borderRadius: '16px', overflow: 'hidden', boxShadow: hovered ? '0 8px 24px rgba(0,0,0,0.12)' : '0 2px 8px rgba(0,0,0,0.06)', transition: 'all 0.3s ease', transform: hovered ? 'translateY(-4px)' : 'translateY(0)', backgroundColor: '#FFFFFF' }}>
+      <div style={{ position: 'relative', height: '200px' }}>
+        <img src={imageUrl} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        {hovered && (
+          <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+            <button onClick={onView}
+              style={{ padding: '8px 16px', borderRadius: '8px', backgroundColor: '#0097FF', color: '#FFFFFF', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>
+              View
+            </button>
+            <button onClick={onDelete}
+              style={{ width: '36px', height: '36px', borderRadius: '8px', backgroundColor: 'rgba(255,255,255,0.9)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#AE2012" strokeWidth="2">
+                <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+              </svg>
+            </button>
+          </div>
+        )}
+      </div>
+      <div style={{ padding: '12px 14px' }}>
+        <p style={{ fontSize: '13px', fontWeight: '600', color: '#141415', margin: '0 0 6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</p>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '11px', color: '#7E7E82' }}>❤️ {item.likes || 0}</span>
+          <span style={{ fontSize: '11px', color: '#7E7E82' }}>🔖 {item.saves || 0}</span>
+          {item.views !== undefined && <span style={{ fontSize: '11px', color: '#7E7E82' }}>👁 {item.views || 0}</span>}
+          {item.reads !== undefined && <span style={{ fontSize: '11px', color: '#7E7E82' }}>📖 {item.reads || 0}</span>}
+        </div>
+        <p style={{ fontSize: '10px', color: '#C7C7CA', margin: '6px 0 0' }}>
+          {new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+        </p>
+      </div>
+    </div>
+  )
+}
+
+function ViewModal({ item, type, onClose, navigate }) {
+  const imageUrl = item.image_url || item.cover_image_url || 'https://picsum.photos/seed/' + item.id + '/380/400'
+
+  // Parse blog content sections
+  let blogSections = []
+  if (type === 'blogs' && item.content) {
+    try {
+      blogSections = Array.isArray(item.content) ? item.content : JSON.parse(item.content)
+    } catch {
+      blogSections = [{ subtitle: '', content: item.description || '' }]
+    }
+  }
+
+  const [expanded, setExpanded] = useState(false)
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,12,20,0.75)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
+      <div style={{ width: '860px', maxHeight: '85vh', backgroundColor: '#FFFFFF', borderRadius: '24px', overflow: 'hidden', display: 'grid', gridTemplateColumns: '340px 1fr', boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
+        <img src={imageUrl} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        <div style={{ padding: '32px', overflowY: 'auto', position: 'relative' }}>
+          <button onClick={onClose}
+            style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: '#7E7E82' }}>✕</button>
+
+          <div style={{ display: 'inline-block', padding: '4px 12px', borderRadius: '9999px', backgroundColor: '#EFF9FF', marginBottom: '16px' }}>
+            <span style={{ fontSize: '12px', color: '#0097FF', fontWeight: '600', textTransform: 'capitalize' }}>
+              {type === 'blogs' ? 'Blog' : type === 'memes' ? 'Meme' : 'Event'}
+            </span>
+          </div>
+
+          <h2 style={{ fontSize: '22px', fontWeight: '700', color: '#141415', marginBottom: '12px', paddingRight: '32px' }}>{item.title}</h2>
+
+          {/* Blog content with expand/collapse */}
+          {type === 'blogs' && blogSections.length > 0 && (
+            <div style={{ marginBottom: '16px' }}>
+              {blogSections.slice(0, expanded ? undefined : 1).map((section, i) => (
+                <div key={i} style={{ marginBottom: '16px' }}>
+                  {section.subtitle && (
+                    <p style={{ fontSize: '15px', fontWeight: '700', color: '#141415', margin: '0 0 6px' }}>{section.subtitle}</p>
+                  )}
+                  <p style={{ fontSize: '14px', color: '#59595C', lineHeight: '22px', margin: 0 }}>{section.content}</p>
+                </div>
+              ))}
+              {blogSections.length > 1 && (
+                <button onClick={() => setExpanded(!expanded)}
+                  style={{ marginTop: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#0097FF', fontSize: '14px', fontWeight: '500', padding: 0 }}>
+                  {expanded ? '▲ Show less' : '▼ Read more sections (' + (blogSections.length - 1) + ' more)'}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Event/Meme description */}
+          {type !== 'blogs' && item.description && (
+            <p style={{ fontSize: '14px', color: '#59595C', marginBottom: '16px', lineHeight: '22px' }}>{item.description}</p>
+          )}
+
+          {/* Caption for memes */}
+          {type === 'memes' && item.caption && (
+            <div style={{ backgroundColor: '#F9F9F9', borderRadius: '8px', padding: '12px 16px', marginBottom: '16px' }}>
+              <p style={{ fontSize: '13px', color: '#414143', margin: 0, lineHeight: '20px' }}>{item.caption}</p>
+            </div>
+          )}
+
+          {item.category && <p style={{ fontSize: '13px', color: '#7E7E82', marginBottom: '8px' }}>🏷️ <strong>{item.category}</strong></p>}
+          {item.location && <p style={{ fontSize: '13px', color: '#7E7E82', marginBottom: '8px' }}>📍 <strong>{item.location}</strong></p>}
+          {item.event_date && (
+            <p style={{ fontSize: '13px', color: '#7E7E82', marginBottom: '8px' }}>
+              📅 {new Date(item.event_date) >= new Date() ? '🟢 Running' : '⏰ Past'} — {new Date(item.event_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            </p>
+          )}
+
+          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #E8E8EA' }}>
+            <span style={{ fontSize: '13px', color: '#59595C' }}>❤️ {item.likes || 0}</span>
+            <span style={{ fontSize: '13px', color: '#59595C' }}>🔖 {item.saves || 0}</span>
+            {item.views !== undefined && <span style={{ fontSize: '13px', color: '#59595C' }}>👁 {item.views || 0}</span>}
+            {item.reads !== undefined && <span style={{ fontSize: '13px', color: '#59595C' }}>📖 {item.reads || 0}</span>}
+          </div>
+
+          {/* View full blog button */}
+          {type === 'blogs' && (
+            <button
+              onClick={() => { onClose(); navigate('/blog/' + item.id) }}
+              style={{ marginTop: '16px', width: '100%', height: '44px', borderRadius: '8px', border: 'none', backgroundColor: '#0097FF', color: '#FFFFFF', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
+              Read Full Blog
+            </button>
+          )}
+
+          <p style={{ fontSize: '12px', color: '#C7C7CA', marginTop: '16px' }}>
+            Uploaded on {new Date(item.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default MyUploads

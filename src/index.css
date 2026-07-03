@@ -1,0 +1,141 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'Asap';
+  src: url('./assets/fonts/Asap-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Asap';
+  src: url('./assets/fonts/Asap-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Asap';
+  src: url('./assets/fonts/Asap-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@theme {
+  --font-sans: 'Asap', sans-serif;
+
+  /* Blue */
+  --color-blue-900: #000C14;
+  --color-blue-800: #00253D;
+  --color-blue-700: #003D66;
+  --color-blue-600: #00568F;
+  --color-blue-500: #007ACC;
+  --color-blue-400: #0097FF;
+  --color-blue-300: #93D4FF;
+  --color-blue-200: #CBEAFF;
+  --color-blue-100: #E3F4FF;
+  --color-blue-50: #EFF9FF;
+  --color-blue-10: #F6FBFF;
+
+  /* Grey */
+  --color-grey-900: #141415;
+  --color-grey-800: #141415;
+  --color-grey-700: #414143;
+  --color-grey-600: #59595C;
+  --color-grey-500: #7E7E82;
+  --color-grey-400: #A5A5AA;
+  --color-grey-300: #C7C7CA;
+  --color-grey-200: #DEDEE0;
+  --color-grey-100: #E8E8EA;
+  --color-grey-50: #F3F3F4;
+  --color-grey-10: #F9F9F9;
+
+  /* Yellow */
+  --color-yellow-900: #291E00;
+  --color-yellow-800: #523C00;
+  --color-yellow-700: #7A5900;
+  --color-yellow-600: #B88700;
+  --color-yellow-500: #FFB900;
+  --color-yellow-400: #FFC936;
+  --color-yellow-300: #FED86E;
+  --color-yellow-200: #FFE6A2;
+  --color-yellow-100: #FFF0C7;
+  --color-yellow-50: #FFF6DE;
+  --color-yellow-10: #FFFCF4;
+
+  /* Pink */
+  --color-pink-900: #14010B;
+  --color-pink-800: #3B021E;
+  --color-pink-700: #620433;
+  --color-pink-600: #8A0547;
+  --color-pink-500: #D90870;
+  --color-pink-400: #F72D93;
+  --color-pink-300: #FFB5DA;
+  --color-pink-200: #FFDFEF;
+  --color-pink-100: #FFF0F8;
+  --color-pink-50: #FFF5FA;
+  --color-pink-10: #FFF8FB;
+
+  /* Status */
+  --color-success: #4CAF50;
+  --color-error: #AE2012;
+
+  /* Font sizes */
+  --text-h1: 64px;
+  --text-h2: 40px;
+  --text-h3: 32px;
+  --text-h4: 24px;
+  --text-h5: 20px;
+  --text-h6: 24px;
+  --text-h7: 20px;
+  --text-title1: 16px;
+  --text-title2: 14px;
+  --text-title3: 12px;
+  --text-subtitle1: 16px;
+  --text-subtitle2: 14px;
+  --text-subtitle3: 12px;
+  --text-p1: 16px;
+  --text-p2: 14px;
+  --text-p3: 12px;
+  --text-label1: 12px;
+  --text-label2: 10px;
+  --text-caption1: 12px;
+  --text-caption2: 10px;
+  --text-nav1: 14px;
+  --text-nav2: 12px;
+  --text-btn1: 16px;
+  --text-btn2: 14px;
+  --text-btn3: 12px;
+
+  /* Border radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-modal: 0 8px 32px rgba(0, 0, 0, 0.16);
+}
+
+* {
+  font-family: 'Asap', sans-serif;
+}
+@layer components {
+  /* Search Bar */
+  .search-bar {
+    @apply flex items-center gap-2 px-3 py-2 bg-grey-10 border border-grey-200 rounded-md text-p2 text-grey-400 h-10 w-full;
+  }
+
+  /* Primary Button - Create Event */
+  .btn-primary {
+    @apply flex items-center justify-center gap-2 px-4 py-3 bg-blue-400 text-grey-10 text-btn2 font-medium rounded-md h-9 whitespace-nowrap;
+  }
+
+  /* Secondary Button - Sign In */
+  .btn-secondary {
+    @apply flex items-center justify-center gap-2 px-4 py-3 bg-grey-10 text-grey-700 text-btn2 font-medium rounded-md h-9 border border-grey-200 whitespace-nowrap;
+  }
+}
