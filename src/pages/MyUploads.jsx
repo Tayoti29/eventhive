@@ -35,7 +35,6 @@ function MyUploads() {
   const location = useLocation()
   const { user } = useAuth()
 
-  // Read tab from navigation state (set by CreateMeme and CreateBlog)
   const defaultTab = location.state?.activeTab || 'events'
   const [activeTab, setActiveTab] = useState(defaultTab)
   const [eventFilter, setEventFilter] = useState('running')
@@ -45,9 +44,7 @@ function MyUploads() {
   const [viewItem, setViewItem] = useState(null)
   const [successMsg, setSuccessMsg] = useState('')
 
-  useEffect(() => {
-    fetchUploads()
-  }, [user])
+  useEffect(() => { fetchUploads() }, [user])
 
   const fetchUploads = async () => {
     setLoading(true)
@@ -121,7 +118,6 @@ function MyUploads() {
           ))}
         </div>
 
-        {/* Event sub-filter */}
         {activeTab === 'events' && (
           <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
             {['running', 'past'].map((f) => (
@@ -133,7 +129,6 @@ function MyUploads() {
           </div>
         )}
 
-        {/* Grid */}
         {loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', padding: '80px 0' }}>
             <div style={{ display: 'flex', gap: '8px' }}>
@@ -174,7 +169,7 @@ function MyUploads() {
       <style>{`@keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-12px); } }`}</style>
       <div style={{ maxWidth: '1440px', margin: '0 auto' }}><Footer /></div>
 
-      {/* Delete Confirm Modal */}
+      {/* Delete Confirm */}
       {deleteTarget && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ width: '420px', backgroundColor: '#FFFFFF', borderRadius: '16px', padding: '32px', boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
@@ -246,7 +241,7 @@ function UploadCard({ item, type, onView, onDelete }) {
 function ViewModal({ item, type, onClose, navigate }) {
   const imageUrl = item.image_url || item.cover_image_url || 'https://picsum.photos/seed/' + item.id + '/380/400'
 
-  // Parse blog content sections
+  // Parse blog content
   let blogSections = []
   if (type === 'blogs' && item.content) {
     try {
@@ -256,84 +251,99 @@ function ViewModal({ item, type, onClose, navigate }) {
     }
   }
 
-  const [expanded, setExpanded] = useState(false)
-
   return (
     <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,12,20,0.75)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
-      <div style={{ width: '860px', maxHeight: '85vh', backgroundColor: '#FFFFFF', borderRadius: '24px', overflow: 'hidden', display: 'grid', gridTemplateColumns: '340px 1fr', boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
-        <img src={imageUrl} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-        <div style={{ padding: '32px', overflowY: 'auto', position: 'relative' }}>
-          <button onClick={onClose}
-            style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: '#7E7E82' }}>✕</button>
 
-          <div style={{ display: 'inline-block', padding: '4px 12px', borderRadius: '9999px', backgroundColor: '#EFF9FF', marginBottom: '16px' }}>
-            <span style={{ fontSize: '12px', color: '#0097FF', fontWeight: '600', textTransform: 'capitalize' }}>
-              {type === 'blogs' ? 'Blog' : type === 'memes' ? 'Meme' : 'Event'}
-            </span>
+      <div style={{ width: '860px', maxHeight: '88vh', backgroundColor: '#FFFFFF', borderRadius: '24px', overflow: 'hidden', display: 'grid', gridTemplateColumns: '320px 1fr', boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
+
+        {/* Left — Image (fixed, never changes) */}
+        <div style={{ position: 'relative', overflow: 'hidden' }}>
+          <img src={imageUrl} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)', padding: '24px 16px 16px' }}>
+            <div style={{ display: 'inline-block', padding: '4px 12px', borderRadius: '9999px', backgroundColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(4px)' }}>
+              <span style={{ fontSize: '12px', color: '#FFFFFF', fontWeight: '600', textTransform: 'capitalize' }}>
+                {type === 'blogs' ? 'Blog' : type === 'memes' ? 'Meme' : 'Event'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Right — Scrollable content */}
+        <div style={{ display: 'flex', flexDirection: 'column', maxHeight: '88vh', overflow: 'hidden' }}>
+
+          {/* Header — fixed */}
+          <div style={{ padding: '24px 28px 16px', borderBottom: '1px solid #E8E8EA', flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#141415', margin: 0, lineHeight: '28px' }}>{item.title}</h2>
+              <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: '#7E7E82', flexShrink: 0 }}>✕</button>
+            </div>
+            {item.category && (
+              <span style={{ display: 'inline-block', marginTop: '8px', padding: '3px 12px', borderRadius: '9999px', backgroundColor: '#EFF9FF', fontSize: '12px', color: '#0097FF', fontWeight: '600' }}>
+                {item.category}
+              </span>
+            )}
           </div>
 
-          <h2 style={{ fontSize: '22px', fontWeight: '700', color: '#141415', marginBottom: '12px', paddingRight: '32px' }}>{item.title}</h2>
+          {/* Scrollable body — only this part scrolls */}
+          <div style={{ overflowY: 'auto', padding: '20px 28px', flex: 1, scrollbarWidth: 'thin', scrollbarColor: '#C7C7CA #F9F9F9' }}>
 
-          {/* Blog content with expand/collapse */}
-          {type === 'blogs' && blogSections.length > 0 && (
-            <div style={{ marginBottom: '16px' }}>
-              {blogSections.slice(0, expanded ? undefined : 1).map((section, i) => (
-                <div key={i} style={{ marginBottom: '16px' }}>
-                  {section.subtitle && (
-                    <p style={{ fontSize: '15px', fontWeight: '700', color: '#141415', margin: '0 0 6px' }}>{section.subtitle}</p>
-                  )}
-                  <p style={{ fontSize: '14px', color: '#59595C', lineHeight: '22px', margin: 0 }}>{section.content}</p>
-                </div>
-              ))}
-              {blogSections.length > 1 && (
-                <button onClick={() => setExpanded(!expanded)}
-                  style={{ marginTop: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#0097FF', fontSize: '14px', fontWeight: '500', padding: 0 }}>
-                  {expanded ? '▲ Show less' : '▼ Read more sections (' + (blogSections.length - 1) + ' more)'}
-                </button>
-              )}
+            {/* Blog content sections — fully scrollable */}
+            {type === 'blogs' && blogSections.length > 0 && (
+              <div style={{ marginBottom: '20px' }}>
+                {blogSections.map((section, i) => (
+                  <div key={i} style={{ marginBottom: '20px' }}>
+                    {section.subtitle && section.subtitle.trim() && (
+                      <p style={{ fontSize: '15px', fontWeight: '700', color: '#141415', margin: '0 0 6px' }}>{section.subtitle}</p>
+                    )}
+                    <p style={{ fontSize: '14px', color: '#59595C', lineHeight: '22px', margin: 0, whiteSpace: 'pre-line' }}>{section.content}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Caption for memes */}
+            {type === 'memes' && item.caption && (
+              <div style={{ backgroundColor: '#F9F9F9', borderRadius: '8px', padding: '12px 16px', marginBottom: '16px' }}>
+                <p style={{ fontSize: '14px', color: '#414143', margin: 0, lineHeight: '22px' }}>{item.caption}</p>
+              </div>
+            )}
+
+            {/* Event / other description */}
+            {type !== 'blogs' && item.description && (
+              <p style={{ fontSize: '14px', color: '#59595C', marginBottom: '16px', lineHeight: '22px' }}>{item.description}</p>
+            )}
+
+            {item.location && <p style={{ fontSize: '13px', color: '#7E7E82', marginBottom: '8px' }}>📍 <strong>{item.location}</strong></p>}
+            {item.event_date && (
+              <p style={{ fontSize: '13px', color: '#7E7E82', marginBottom: '8px' }}>
+                📅 {new Date(item.event_date) >= new Date() ? '🟢 Running' : '⏰ Past'} — {new Date(item.event_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+              </p>
+            )}
+
+            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #E8E8EA' }}>
+              <span style={{ fontSize: '13px', color: '#59595C' }}>❤️ {item.likes || 0}</span>
+              <span style={{ fontSize: '13px', color: '#59595C' }}>🔖 {item.saves || 0}</span>
+              {item.views !== undefined && <span style={{ fontSize: '13px', color: '#59595C' }}>👁 {item.views || 0}</span>}
+              {item.reads !== undefined && <span style={{ fontSize: '13px', color: '#59595C' }}>📖 {item.reads || 0}</span>}
+              {item.downloads !== undefined && <span style={{ fontSize: '13px', color: '#59595C' }}>⬇️ {item.downloads || 0}</span>}
             </div>
-          )}
 
-          {/* Event/Meme description */}
-          {type !== 'blogs' && item.description && (
-            <p style={{ fontSize: '14px', color: '#59595C', marginBottom: '16px', lineHeight: '22px' }}>{item.description}</p>
-          )}
-
-          {/* Caption for memes */}
-          {type === 'memes' && item.caption && (
-            <div style={{ backgroundColor: '#F9F9F9', borderRadius: '8px', padding: '12px 16px', marginBottom: '16px' }}>
-              <p style={{ fontSize: '13px', color: '#414143', margin: 0, lineHeight: '20px' }}>{item.caption}</p>
-            </div>
-          )}
-
-          {item.category && <p style={{ fontSize: '13px', color: '#7E7E82', marginBottom: '8px' }}>🏷️ <strong>{item.category}</strong></p>}
-          {item.location && <p style={{ fontSize: '13px', color: '#7E7E82', marginBottom: '8px' }}>📍 <strong>{item.location}</strong></p>}
-          {item.event_date && (
-            <p style={{ fontSize: '13px', color: '#7E7E82', marginBottom: '8px' }}>
-              📅 {new Date(item.event_date) >= new Date() ? '🟢 Running' : '⏰ Past'} — {new Date(item.event_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            <p style={{ fontSize: '12px', color: '#C7C7CA', marginTop: '16px' }}>
+              Uploaded on {new Date(item.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
             </p>
-          )}
-
-          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #E8E8EA' }}>
-            <span style={{ fontSize: '13px', color: '#59595C' }}>❤️ {item.likes || 0}</span>
-            <span style={{ fontSize: '13px', color: '#59595C' }}>🔖 {item.saves || 0}</span>
-            {item.views !== undefined && <span style={{ fontSize: '13px', color: '#59595C' }}>👁 {item.views || 0}</span>}
-            {item.reads !== undefined && <span style={{ fontSize: '13px', color: '#59595C' }}>📖 {item.reads || 0}</span>}
           </div>
 
-          {/* View full blog button */}
+          {/* Footer — fixed, never scrolls */}
           {type === 'blogs' && (
-            <button
-              onClick={() => { onClose(); navigate('/blog/' + item.id) }}
-              style={{ marginTop: '16px', width: '100%', height: '44px', borderRadius: '8px', border: 'none', backgroundColor: '#0097FF', color: '#FFFFFF', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
-              Read Full Blog
-            </button>
+            <div style={{ padding: '16px 28px', borderTop: '1px solid #E8E8EA', flexShrink: 0 }}>
+              <button
+                onClick={() => { onClose(); navigate('/blog/' + item.id) }}
+                style={{ width: '100%', height: '44px', borderRadius: '8px', border: 'none', backgroundColor: '#0097FF', color: '#FFFFFF', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
+                Read Full Blog →
+              </button>
+            </div>
           )}
-
-          <p style={{ fontSize: '12px', color: '#C7C7CA', marginTop: '16px' }}>
-            Uploaded on {new Date(item.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-          </p>
         </div>
       </div>
     </div>

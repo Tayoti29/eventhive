@@ -139,3 +139,161 @@
     @apply flex items-center justify-center gap-2 px-4 py-3 bg-grey-10 text-grey-700 text-btn2 font-medium rounded-md h-9 border border-grey-200 whitespace-nowrap;
   }
 }
+
+/* ── Responsive: 1024px tablet ── */
+@media (max-width: 1024px) {
+  nav {
+    padding: 16px 80px !important;
+  }
+}
+
+/* ── Global responsive helper ── */
+@media (max-width: 1100px) {
+  /* Reduce all 100px horizontal padding sections to 80px */
+  section > div[style*="padding: 0 100px"],
+  div[style*="padding: 0 100px"],
+  div[style*="padding: 48px 100px"],
+  div[style*="padding: 32px 100px"],
+  div[style*="padding: 80px 100px"] {
+    padding-left: 80px !important;
+    padding-right: 80px !important;
+  }
+}
+
+/* ── Mobile: 576px and below ── */
+@media (max-width: 576px) {
+  /* Navbar */
+  nav {
+    padding: 14px 20px !important;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  /* Hide center nav links on mobile */
+  nav > div:nth-child(2) {
+    display: none !important;
+  }
+
+  /* All section padding */
+  section > div,
+  div[style*="padding: 0 100px"],
+  div[style*="padding: 48px 100px"],
+  div[style*="padding: 32px 100px"],
+  div[style*="padding: 80px 100px"],
+  div[style*="padding: 48px 100px 80px"],
+  div[style*="padding: 32px 100px 80px"],
+  div[style*="padding: 32px 80px 80px"] {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+
+  /* Banners */
+  div[style*="height: 328px"] {
+    height: auto !important;
+    flex-direction: column !important;
+    padding: 32px 20px !important;
+    gap: 24px;
+  }
+
+  /* Banner animated cards — hide on mobile */
+  div[style*="width: 228px"][style*="height: 228px"] {
+    display: none !important;
+  }
+
+  /* 4-column grids → 2 columns on mobile */
+  div[style*="gridTemplateColumns: repeat(4, 1fr)"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  /* 3-column grids → 1 column on mobile */
+  div[style*="gridTemplateColumns: repeat(3, 1fr)"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* 2-column grids → 1 column on mobile */
+  div[style*="gridTemplateColumns: 1fr 1fr"],
+  div[style*="gridTemplateColumns: '1fr 1fr'"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* EventDetail / BlogDetail side-by-side layouts */
+  div[style*="gridTemplateColumns: 514px 1fr"],
+  div[style*="gridTemplateColumns: '514px 1fr'"] {
+    grid-template-columns: 1fr !important;
+  }
+  div[style*="width: 514px"][style*="height: 600px"] {
+    width: 100% !important;
+    height: 300px !important;
+  }
+
+  /* Advert column — hide on mobile */
+  div[style*="width: 292px"][style*="borderRadius: '12px'"] {
+    display: none !important;
+  }
+
+  /* Blog content grid */
+  div[style*="gridTemplateColumns: 842px 1fr"],
+  div[style*="gridTemplateColumns: '842px 1fr'"],
+  div[style*="gridTemplateColumns: 1fr 292px"],
+  div[style*="gridTemplateColumns: '1fr 292px'"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Nav cards — stack on mobile */
+  div[style*="gap: 40px"][style*="padding: 40px 0"] {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 16px !important;
+    padding: 24px 20px !important;
+  }
+  div[style*="width: 405px"][style*="height: 335px"] {
+    width: 100% !important;
+    height: auto !important;
+    padding: 24px !important;
+  }
+
+  /* Profile header banner */
+  div[style*="height: 180px"][style*="background: linear-gradient"] {
+    height: 120px !important;
+  }
+
+  /* Fonts */
+  h1[style*="fontSize: '40px'"],
+  h2[style*="fontSize: '40px'"] {
+    font-size: 28px !important;
+    line-height: 36px !important;
+  }
+
+  /* Create Event / Blog / Meme form */
+  div[style*="maxWidth: '540px'"],
+  div[style*="maxWidth: '680px'"] {
+    max-width: 100% !important;
+  }
+
+  /* Modal full-screen on mobile */
+  div[style*="width: 860px"],
+  div[style*="width: 560px"],
+  div[style*="width: 449px"],
+  div[style*="width: 420px"],
+  div[style*="width: 440px"] {
+    width: 95vw !important;
+  }
+
+  div[style*="gridTemplateColumns: '320px 1fr'"],
+  div[style*="gridTemplateColumns: 320px 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── Mobile: 320px very small ── */
+@media (max-width: 360px) {
+  div[style*="gridTemplateColumns: repeat(4, 1fr)"],
+  div[style*="gridTemplateColumns: repeat(2, 1fr)"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  div[style*="fontSize: '40px'"] {
+    font-size: 24px !important;
+  }
+}
