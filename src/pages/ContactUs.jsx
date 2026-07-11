@@ -5,7 +5,7 @@ import SubscribeSection from '../components/SubscribeSection'
 
 function ContactUs() {
   const [form, setForm] = useState({
-    title: '', message: '', email: '', whatsapp: '', phone: '',
+    title: '', message: '', email: '', whatsapp: '',
   })
   const [errors, setErrors] = useState({})
   const [submitted, setSubmitted] = useState(false)
@@ -75,7 +75,7 @@ function ContactUs() {
                   Thank you for reaching out. Our team will respond to <strong style={{ color: '#141415' }}>{form.email}</strong> within 24 hours.
                 </p>
                 <button
-                  onClick={() => { setSubmitted(false); setForm({ title: '', message: '', email: '', whatsapp: '', phone: '' }) }}
+                  onClick={() => { setSubmitted(false); setForm({ title: '', message: '', email: '', whatsapp: '' }) }}
                   style={{ height: '52px', padding: '0 32px', borderRadius: '12px', border: 'none', backgroundColor: '#0097FF', color: '#FFFFFF', fontSize: '16px', fontWeight: '600', cursor: 'pointer' }}>
                   Send Another Message
                 </button>
@@ -133,28 +133,13 @@ function ContactUs() {
                 </div>
 
                 {/* WhatsApp */}
-                <div style={{ marginBottom: '24px' }}>
+                <div style={{ marginBottom: '40px' }}>
                   <label style={labelStyle}>WhatsApp Number <span style={{ fontSize: '13px', color: '#A5A5AA', fontWeight: '400' }}>(optional)</span></label>
                   <div style={{ position: 'relative' }}>
                     <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', fontSize: '20px' }}>💬</span>
                     <input
                       type="tel" placeholder="+234 800 000 0000" value={form.whatsapp}
                       onChange={(e) => set('whatsapp', e.target.value)}
-                      style={{ ...inputStyle, paddingLeft: '48px' }}
-                      onFocus={(e) => { e.target.style.borderColor = '#0097FF' }}
-                      onBlur={(e) => { e.target.style.borderColor = '#E8E8EA' }}
-                    />
-                  </div>
-                </div>
-
-                {/* Phone */}
-                <div style={{ marginBottom: '40px' }}>
-                  <label style={labelStyle}>Alternative Phone Number <span style={{ fontSize: '13px', color: '#A5A5AA', fontWeight: '400' }}>(optional)</span></label>
-                  <div style={{ position: 'relative' }}>
-                    <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', fontSize: '20px' }}>📞</span>
-                    <input
-                      type="tel" placeholder="+234 800 000 0001" value={form.phone}
-                      onChange={(e) => set('phone', e.target.value)}
                       style={{ ...inputStyle, paddingLeft: '48px' }}
                       onFocus={(e) => { e.target.style.borderColor = '#0097FF' }}
                       onBlur={(e) => { e.target.style.borderColor = '#E8E8EA' }}
@@ -178,8 +163,6 @@ function ContactUs() {
               {[
                 { icon: '📧', title: 'Email', value: 'hello@eventhive.com', link: 'mailto:hello@eventhive.com' },
                 { icon: '💬', title: 'WhatsApp', value: '+234 800 123 4567', link: 'https://wa.me/2348001234567' },
-                { icon: '📞', title: 'Phone', value: '+234 800 987 6543', link: 'tel:+2348009876543' },
-                { icon: '📍', title: 'Address', value: 'Lagos, Nigeria', link: null },
               ].map((item) => (
                 <div key={item.title} style={{ display: 'flex', gap: '16px', marginBottom: '20px', alignItems: 'flex-start' }}>
                   <div style={{ width: '44px', height: '44px', borderRadius: '12px', backgroundColor: '#FFFFFF', border: '1px solid #E8E8EA', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>
