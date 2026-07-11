@@ -6,11 +6,50 @@ import Footer from '../components/Footer'
 import SubscribeSection from '../components/SubscribeSection'
 import SaveButton from '../components/SaveButton'
 import advertImg from '../assets/subscribe-card1.png'
+// TODO: add a second creative to /src/assets and import it here.
+// If you don't have one yet, this duplicates the first ad as a placeholder.
+import advertImg2 from '../assets/subscribe-card1.png'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../supabaseClient'
 
 function isValidUUID(id) {
   return id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(id))
+}
+
+// ─────────────────────────────────────────────────────────
+// AD CONFIG — edit these to change what ads show.
+// type: 'image' (also covers gif) or 'video' (auto-detected from extension too)
+// link: optional — where clicking the ad goes. Leave '' for no link.
+// ─────────────────────────────────────────────────────────
+const sidebarAds = [
+  { id: 'sidebar-ad-1', src: advertImg, type: 'image', link: '' },
+  { id: 'sidebar-ad-2', src: advertImg2, type: 'image', link: '' },
+]
+
+const relatedGridAds = [
+  { id: 'grid-ad-1', src: advertImg, type: 'image', link: '' },
+]
+
+function isVideoFile(src) {
+  return /\.(mp4|webm|mov)$/i.test(src || '')
+}
+
+// Renders image, gif, or silent video depending on file type
+function AdMedia({ src, type, style, alt }) {
+  const isVideo = type === 'video' || isVideoFile(src)
+  if (isVideo) {
+    return (
+      <video
+        src={src}
+        style={style}
+        autoPlay
+        loop
+        muted
+        playsInline
+      />
+    )
+  }
+  return <img src={src} alt={alt || 'Advertisement'} style={style} />
 }
 
 function UserAvatar({ avatarUrl, name, size }) {
@@ -84,6 +123,40 @@ function RelatedBlogCard({ blog }) {
   )
 }
 
+// Ad card that fills a related-blog grid slot — same footprint as RelatedBlogCard,
+// no title/date/avatar, just the ad media plus a small "Ad" tag.
+function RelatedAdCard({ ad }) {
+  const [hovered, setHovered] = useState(false)
+  const content = (
+    <div onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+      style={{ borderRadius: '12px', overflow: 'hidden', cursor: ad.link ? 'pointer' : 'default', boxShadow: hovered ? '0 8px 24px rgba(0,0,0,0.15)' : '0 2px 8px rgba(0,0,0,0.08)', transition: 'all 0.3s ease', transform: hovered ? 'translateY(-4px)' : 'translateY(0)', backgroundColor: '#F3F3F4', position: 'relative', height: '272px' }}>
+      <AdMedia src={ad.src} type={ad.type} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+      <span style={{ position: 'absolute', top: '10px', left: '10px', fontSize: '10px', fontWeight: '600', color: '#FFFFFF', backgroundColor: 'rgba(0,0,0,0.55)', padding: '3px 10px', borderRadius: '9999px', letterSpacing: '0.3px' }}>
+        Ad
+      </span>
+    </div>
+  )
+  if (ad.link) {
+    return <a href={ad.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'block' }}>{content}</a>
+  }
+  return content
+}
+
+// Interleaves an ad after every 10 related blog cards
+function buildRelatedItemsWithAds(blogs, ads) {
+  if (!ads || ads.length === 0) return blogs.map((b) => ({ kind: 'blog', data: b }))
+  const items = []
+  let adIndex = 0
+  blogs.forEach((rb, i) => {
+    items.push({ kind: 'blog', data: rb })
+    if ((i + 1) % 10 === 0) {
+      items.push({ kind: 'ad', data: ads[adIndex % ads.length] })
+      adIndex += 1
+    }
+  })
+  return items
+}
+
 const blogCategories = ['All Blogs','Events','Music','Tech','Lifestyle','Business','Health','Travel','Food','Entertainment','Sports','Fashion','Education']
 
 const navCards = [
@@ -131,7 +204,6 @@ function BlogPageForDownload({ blog, contentSections, pageNum }) {
     }}>
       <div style={{ flex: 1 }}>
 
-        {/* Cover image — page 1 only. Fixed 420x163 container, image always cropped to fit/cover regardless of uploaded size */}
         {pageNum === 1 && (
           <div style={{
             width: '420px', height: '163px', margin: '0 auto 20px',
@@ -146,12 +218,10 @@ function BlogPageForDownload({ blog, contentSections, pageNum }) {
           </div>
         )}
 
-        {/* Title — appears on both pages */}
         <h1 style={{ fontSize: '32px', fontWeight: '800', color: '#123C64', lineHeight: '39px', margin: '0 0 14px' }}>
           {blog.title}
         </h1>
 
-        {/* Author row — appears on both pages */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
           <UserAvatar avatarUrl={blog.author_avatar} name={blog.author_name} size={30} />
           <div>
@@ -164,7 +234,6 @@ function BlogPageForDownload({ blog, contentSections, pageNum }) {
           </div>
         </div>
 
-        {/* Content Sections */}
         {sections.map((section, i) => (
           <div key={i} style={{ marginBottom: '18px' }}>
             {section.subtitle && section.subtitle.trim() && (
@@ -179,7 +248,6 @@ function BlogPageForDownload({ blog, contentSections, pageNum }) {
         ))}
       </div>
 
-      {/* Footer watermark */}
       <div style={{ marginTop: '20px', textAlign: 'right', borderTop: '1px solid #F0F0F1', paddingTop: '10px' }}>
         <span style={{ fontSize: '10px', color: '#A5A5AA' }}>Downloaded from www.eventhive.com</span>
       </div>
@@ -187,7 +255,6 @@ function BlogPageForDownload({ blog, contentSections, pageNum }) {
   )
 }
 
-// ── Checkbox used for page selection ──
 function PageCheckbox({ checked, onChange, disabled, label }) {
   return (
     <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: disabled ? 'not-allowed' : 'pointer', userSelect: 'none' }}>
@@ -211,7 +278,6 @@ function PageCheckbox({ checked, onChange, disabled, label }) {
   )
 }
 
-// ── Download Confirmation Modal ──
 function DownloadModal({ blog, contentSections, onClose }) {
   const page1Ref = useRef(null)
   const page2Ref = useRef(null)
@@ -262,7 +328,6 @@ function DownloadModal({ blog, contentSections, onClose }) {
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
       <div style={{ width: '660px', maxWidth: '100%', maxHeight: '95vh', backgroundColor: '#FFFFFF', borderRadius: '20px', boxShadow: '0 24px 64px rgba(0,0,0,0.25)', padding: '24px 28px', display: 'flex', flexDirection: 'column' }}>
 
-        {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '6px' }}>
           <div style={{ display: 'inline-block', padding: '3px 12px', borderRadius: '9999px', backgroundColor: '#EFF9FF' }}>
             <span style={{ fontSize: '11px', color: '#0097FF', fontWeight: '600' }}>PNG Download · A5 Portrait</span>
@@ -277,10 +342,8 @@ function DownloadModal({ blog, contentSections, onClose }) {
           Select which page(s) you'd like to download.
         </p>
 
-        {/* Preview row */}
         <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginBottom: '16px' }}>
 
-          {/* Page 1 card */}
           <div style={{ border: '1px solid #E8E8EA', borderRadius: '10px', padding: '10px', backgroundColor: '#F9F9F9', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
             <p style={{ fontSize: '9px', color: '#A5A5AA', margin: 0, fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Page 1</p>
             <div style={{ width: previewWidth + 'px', height: previewHeight + 'px', overflow: 'hidden', borderRadius: '5px', border: '1px solid #E8E8EA', backgroundColor: '#FFFFFF', boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }}>
@@ -293,7 +356,6 @@ function DownloadModal({ blog, contentSections, onClose }) {
             <PageCheckbox checked={includePage1} onChange={setIncludePage1} label="Include Page 1" />
           </div>
 
-          {/* Page 2 card — only if there's overflow content */}
           {hasPage2 && (
             <div style={{ border: '1px solid #E8E8EA', borderRadius: '10px', padding: '10px', backgroundColor: '#F9F9F9', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
               <p style={{ fontSize: '9px', color: '#A5A5AA', margin: 0, fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Page 2</p>
@@ -321,7 +383,6 @@ function DownloadModal({ blog, contentSections, onClose }) {
           </div>
         )}
 
-        {/* Buttons — below the designs */}
         <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
           <button onClick={onClose}
             style={{ flex: 1, height: '46px', borderRadius: '10px', border: '1px solid #E8E8EA', backgroundColor: '#FFFFFF', color: '#414143', fontSize: '14px', cursor: 'pointer' }}>
@@ -337,7 +398,6 @@ function DownloadModal({ blog, contentSections, onClose }) {
   )
 }
 
-// ── Social share icon button ──
 function SocialShareButton({ label, bg, onClick, icon }) {
   const [hovered, setHovered] = useState(false)
   return (
@@ -363,7 +423,6 @@ function BlogDetail() {
   const [relatedBlogs, setRelatedBlogs] = useState([])
   const [liked, setLiked] = useState(false)
   const [likes, setLikes] = useState(0)
-  const [advertHovered, setAdvertHovered] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
   const [showDownloadModal, setShowDownloadModal] = useState(false)
   const [shareCopied, setShareCopied] = useState(false)
@@ -387,7 +446,6 @@ function BlogDetail() {
     setLoading(false)
   }
 
-  // ── Social share handlers ──
   const shareUrl = typeof window !== 'undefined' ? window.location.href : ''
   const shareTitle = blog ? blog.title : ''
 
@@ -402,7 +460,6 @@ function BlogDetail() {
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
     }
     if (platform === 'instagram' || platform === 'tiktok') {
-      // Instagram / TikTok don't support direct web share links — copy the link instead
       navigator.clipboard.writeText(shareUrl)
       setShareCopied(true)
       setTimeout(() => setShareCopied(false), 2500)
@@ -444,7 +501,6 @@ function BlogDetail() {
 
   const b = blog
 
-  // Parse content sections safely
   let contentSections = []
   try {
     if (Array.isArray(b.content)) {
@@ -462,8 +518,9 @@ function BlogDetail() {
     contentSections = [{ subtitle: '', content: b.description || '' }]
   }
 
+  const relatedItems = buildRelatedItemsWithAds(relatedBlogs, relatedGridAds)
   const relatedColumns = [[], []]
-  relatedBlogs.forEach((rb, i) => relatedColumns[i % 2].push(rb))
+  relatedItems.forEach((item, i) => relatedColumns[i % 2].push(item))
 
   return (
     <div style={{ backgroundColor: '#FFFFFF' }}>
@@ -472,7 +529,6 @@ function BlogDetail() {
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '32px 80px 80px' }}>
         <BackButton />
 
-        {/* Blog Header */}
         <div style={{ marginTop: '24px', marginBottom: '24px', maxWidth: '860px' }}>
           {b.category && (
             <span style={{ fontSize: '13px', fontWeight: '600', color: '#0097FF', backgroundColor: '#EFF9FF', padding: '4px 14px', borderRadius: '9999px', display: 'inline-block', marginBottom: '16px' }}>
@@ -504,10 +560,8 @@ function BlogDetail() {
           </div>
         </div>
 
-        {/* Cover Image + Advert side by side */}
         <div style={{ display: 'flex', gap: '48px', alignItems: 'flex-start' }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            {/* Actions */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
               <button onClick={() => { if (!liked) { setLiked(true); setLikes(likes + 1) } }}
                 style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', cursor: liked ? 'default' : 'pointer', padding: 0 }}>
@@ -529,7 +583,6 @@ function BlogDetail() {
               </div>
             </div>
 
-            {/* Cover image — object-cover to fill like memes */}
             <div style={{ width: '100%', borderRadius: '16px', overflow: 'hidden', marginBottom: '16px', backgroundColor: '#141415' }}>
               <img
                 src={b.cover_image_url || 'https://picsum.photos/seed/' + b.id + '/842/540'}
@@ -538,7 +591,6 @@ function BlogDetail() {
               />
             </div>
 
-            {/* Meta stats */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', padding: '16px 0', borderBottom: '1px solid #E8E8EA', marginBottom: '40px' }}>
               {[
                 { icon: '👁️', label: (b.reads || 0).toLocaleString() + ' reads' },
@@ -552,7 +604,6 @@ function BlogDetail() {
               ))}
             </div>
 
-            {/* Blog Content — fully visible, no collapse needed */}
             <div style={{ maxWidth: '720px' }}>
               {contentSections.map((section, i) => (
                 <div key={i} style={{ marginBottom: '32px' }}>
@@ -567,7 +618,6 @@ function BlogDetail() {
                 </div>
               ))}
 
-              {/* Tags */}
               {b.tags && b.tags.length > 0 && (
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '32px', paddingTop: '24px', borderTop: '1px solid #E8E8EA' }}>
                   {b.tags.map((tag) => (
@@ -578,7 +628,6 @@ function BlogDetail() {
                 </div>
               )}
 
-              {/* Bottom actions */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px 0', borderTop: '1px solid #E8E8EA', marginTop: '32px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                   <button onClick={() => { if (!liked) { setLiked(true); setLikes(likes + 1) } }}
@@ -610,14 +659,14 @@ function BlogDetail() {
             </div>
           </div>
 
-          {/* Advert */}
-          <div onMouseEnter={() => setAdvertHovered(true)} onMouseLeave={() => setAdvertHovered(false)}
-            style={{ width: '292px', minHeight: '600px', borderRadius: '12px', overflow: 'hidden', flexShrink: 0, boxShadow: advertHovered ? '0 8px 32px rgba(0,0,0,0.15)' : '0 2px 8px rgba(0,0,0,0.08)', transition: 'all 0.3s ease', transform: advertHovered ? 'scale(1.02)' : 'scale(1)', cursor: 'pointer' }}>
-            <img src={advertImg} alt="Advertisement" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          {/* Sidebar — two stacked ads, sticky so they stay visible while scrolling */}
+          <div style={{ width: '292px', flexShrink: 0, position: 'sticky', top: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {sidebarAds.map((ad) => (
+              <SidebarAdCard key={ad.id} ad={ad} />
+            ))}
           </div>
         </div>
 
-        {/* Related + Category Sidebar */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 292px', gap: '48px', marginTop: '64px' }}>
           <div>
             {relatedBlogs.length > 0 && (
@@ -626,7 +675,11 @@ function BlogDetail() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                   {relatedColumns.map((col, i) => (
                     <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                      {col.map((rb) => <RelatedBlogCard key={rb.id} blog={rb} />)}
+                      {col.map((item, idx) =>
+                        item.kind === 'ad'
+                          ? <RelatedAdCard key={'ad-' + i + '-' + idx} ad={item.data} />
+                          : <RelatedBlogCard key={item.data.id} blog={item.data} />
+                      )}
                     </div>
                   ))}
                 </div>
@@ -638,7 +691,6 @@ function BlogDetail() {
             )}
           </div>
 
-          {/* Category list */}
           <div>
             <p style={{ fontSize: '14px', fontWeight: '600', color: '#59595C', marginBottom: '12px' }}>
               Category: <span style={{ color: '#0097FF' }}>{b.category}</span>
@@ -657,7 +709,6 @@ function BlogDetail() {
           </div>
         </div>
 
-        {/* Nav Cards */}
         <div style={{ width: '100%', marginTop: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '40px', padding: '40px 0' }}>
           {navCards.map((card) => <NavCard key={card.title} card={card} />)}
         </div>
@@ -666,7 +717,6 @@ function BlogDetail() {
       <SubscribeSection />
       <div style={{ maxWidth: '1440px', margin: '0 auto' }}><Footer /></div>
 
-      {/* Share Modal */}
       {showShareModal && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           onClick={(e) => { if (e.target === e.currentTarget) setShowShareModal(false) }}>
@@ -683,7 +733,6 @@ function BlogDetail() {
               </button>
             </div>
 
-            {/* Social platform icons */}
             <p style={{ fontSize: '12px', fontWeight: '600', color: '#A5A5AA', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '14px' }}>
               Or share via
             </p>
@@ -722,7 +771,6 @@ function BlogDetail() {
         </div>
       )}
 
-      {/* Download Modal */}
       {showDownloadModal && (
         <DownloadModal
           blog={b}
@@ -734,6 +782,24 @@ function BlogDetail() {
       <style>{`@keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-12px); } }`}</style>
     </div>
   )
+}
+
+// Sidebar ad card — 292 x 292
+function SidebarAdCard({ ad }) {
+  const [hovered, setHovered] = useState(false)
+  const content = (
+    <div onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+      style={{ width: '292px', height: '292px', borderRadius: '12px', overflow: 'hidden', position: 'relative', boxShadow: hovered ? '0 8px 32px rgba(0,0,0,0.15)' : '0 2px 8px rgba(0,0,0,0.08)', transition: 'all 0.3s ease', transform: hovered ? 'scale(1.02)' : 'scale(1)', cursor: ad.link ? 'pointer' : 'default' }}>
+      <AdMedia src={ad.src} type={ad.type} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+      <span style={{ position: 'absolute', top: '10px', left: '10px', fontSize: '10px', fontWeight: '600', color: '#FFFFFF', backgroundColor: 'rgba(0,0,0,0.55)', padding: '3px 10px', borderRadius: '9999px', letterSpacing: '0.3px' }}>
+        Ad
+      </span>
+    </div>
+  )
+  if (ad.link) {
+    return <a href={ad.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'block' }}>{content}</a>
+  }
+  return content
 }
 
 export default BlogDetail
