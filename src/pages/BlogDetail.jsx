@@ -107,9 +107,9 @@ function NavCard({ card }) {
   )
 }
 
-// ── A5 Portrait page dimensions (148mm x 210mm @ ~150dpi) ──
-const PAGE_WIDTH = 874
-const PAGE_HEIGHT = 1240
+// ── A5 Portrait page dimensions (scaled so the 420px image container fits with 30px side padding) ──
+const PAGE_WIDTH = 480
+const PAGE_HEIGHT = 680
 
 // ── PNG Download Preview component (hidden, used for capture) ──
 function BlogPageForDownload({ blog, contentSections, pageNum }) {
@@ -122,7 +122,7 @@ function BlogPageForDownload({ blog, contentSections, pageNum }) {
       width: PAGE_WIDTH + 'px',
       minHeight: PAGE_HEIGHT + 'px',
       backgroundColor: '#FFFFFF',
-      padding: '48px 44px 40px 44px',
+      padding: '30px',
       fontFamily: 'sans-serif',
       position: 'relative',
       boxSizing: 'border-box',
@@ -130,48 +130,58 @@ function BlogPageForDownload({ blog, contentSections, pageNum }) {
       flexDirection: 'column',
     }}>
       <div style={{ flex: 1 }}>
-        {/* Page 1 only: Title, Published by, Date */}
+
+        {/* Cover image — page 1 only. Fixed 420x163 container, image always cropped to fit/cover regardless of uploaded size */}
         {pageNum === 1 && (
-          <div style={{ marginBottom: '32px' }}>
-            <h1 style={{ fontSize: '30px', fontWeight: '800', color: '#0097FF', lineHeight: '38px', marginBottom: '12px' }}>
-              {blog.title}
-            </h1>
-            <p style={{ fontSize: '16px', fontWeight: '700', color: '#0097FF', margin: '0 0 6px' }}>
-              Published by {blog.author_name || 'Author'}
-            </p>
-            <p style={{ fontSize: '15px', color: '#141415', fontWeight: '700', margin: 0 }}>
-              {new Date(blog.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-            </p>
+          <div style={{
+            width: '420px', height: '163px', margin: '0 auto 20px',
+            borderRadius: '8px', overflow: 'hidden', backgroundColor: '#F0F0F1',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <img
+              src={blog.cover_image_url || 'https://picsum.photos/seed/' + blog.id + '/420/163'}
+              alt={blog.title}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            />
           </div>
         )}
 
-        {/* Page 2 only: continuation label */}
-        {pageNum === 2 && (
-          <div style={{ marginBottom: '28px' }}>
-            <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#0097FF', margin: 0 }}>
-              {blog.title} — continued
-            </h2>
+        {/* Title — appears on both pages */}
+        <h1 style={{ fontSize: '32px', fontWeight: '800', color: '#123C64', lineHeight: '39px', margin: '0 0 14px' }}>
+          {blog.title}
+        </h1>
+
+        {/* Author row — appears on both pages */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
+          <UserAvatar avatarUrl={blog.author_avatar} name={blog.author_name} size={30} />
+          <div>
+            <p style={{ fontSize: '13px', fontWeight: '700', color: '#141415', margin: '0 0 2px' }}>
+              {blog.author_name || 'Author'}
+            </p>
+            <p style={{ fontSize: '11px', color: '#7E7E82', margin: 0 }}>
+              Published on {new Date(blog.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} &nbsp;•&nbsp; Page {pageNum}
+            </p>
           </div>
-        )}
+        </div>
 
         {/* Content Sections */}
         {sections.map((section, i) => (
-          <div key={i} style={{ marginBottom: '26px' }}>
+          <div key={i} style={{ marginBottom: '18px' }}>
             {section.subtitle && section.subtitle.trim() && (
-              <p style={{ fontSize: '18px', fontWeight: '700', color: '#414143', margin: '0 0 10px', lineHeight: '26px' }}>
+              <p style={{ fontSize: '16px', fontWeight: '700', color: '#141415', margin: '0 0 6px', lineHeight: '22px' }}>
                 {section.subtitle}
               </p>
             )}
-            <p style={{ fontSize: '15px', color: '#59595C', lineHeight: '26px', margin: 0, whiteSpace: 'pre-line' }}>
+            <p style={{ fontSize: '12px', color: '#414143', lineHeight: '16px', margin: 0, whiteSpace: 'pre-line' }}>
               {section.content}
             </p>
           </div>
         ))}
       </div>
 
-      {/* Footer watermark — pinned to bottom of the A5 page */}
-      <div style={{ marginTop: '40px', textAlign: 'right', borderTop: '1px solid #F0F0F1', paddingTop: '16px' }}>
-        <span style={{ fontSize: '13px', color: '#A5A5AA' }}>Downloaded from www.eventhive.com</span>
+      {/* Footer watermark */}
+      <div style={{ marginTop: '20px', textAlign: 'right', borderTop: '1px solid #F0F0F1', paddingTop: '10px' }}>
+        <span style={{ fontSize: '10px', color: '#A5A5AA' }}>Downloaded from www.eventhive.com</span>
       </div>
     </div>
   )
@@ -184,19 +194,19 @@ function PageCheckbox({ checked, onChange, disabled, label }) {
       <div
         onClick={() => { if (!disabled) onChange(!checked) }}
         style={{
-          width: '20px', height: '20px', borderRadius: '6px',
+          width: '18px', height: '18px', borderRadius: '5px',
           border: '2px solid ' + (checked ? '#0097FF' : '#C7C7CA'),
           backgroundColor: checked ? '#0097FF' : '#FFFFFF',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           transition: 'all 0.15s ease', opacity: disabled ? 0.5 : 1, flexShrink: 0,
         }}>
         {checked && (
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="20 6 9 17 4 12" />
           </svg>
         )}
       </div>
-      <span style={{ fontSize: '14px', fontWeight: '600', color: '#141415' }}>{label}</span>
+      <span style={{ fontSize: '13px', fontWeight: '600', color: '#141415' }}>{label}</span>
     </label>
   )
 }
@@ -214,7 +224,7 @@ function DownloadModal({ blog, contentSections, onClose }) {
 
   const canDownload = includePage1 || (hasPage2 && includePage2)
 
-  const previewScale = 0.32
+  const previewScale = 0.42
   const previewWidth = PAGE_WIDTH * previewScale
   const previewHeight = PAGE_HEIGHT * previewScale
 
@@ -248,33 +258,32 @@ function DownloadModal({ blog, contentSections, onClose }) {
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,12,20,0.75)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}
+    <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,12,20,0.75)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
-      <div style={{ width: '720px', maxWidth: '100%', maxHeight: '90vh', backgroundColor: '#FFFFFF', borderRadius: '24px', overflowY: 'auto', boxShadow: '0 24px 64px rgba(0,0,0,0.25)', padding: '32px' }}>
+      <div style={{ width: '660px', maxWidth: '100%', maxHeight: '95vh', backgroundColor: '#FFFFFF', borderRadius: '20px', boxShadow: '0 24px 64px rgba(0,0,0,0.25)', padding: '24px 28px', display: 'flex', flexDirection: 'column' }}>
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '8px' }}>
-          <div style={{ display: 'inline-block', padding: '4px 14px', borderRadius: '9999px', backgroundColor: '#EFF9FF' }}>
-            <span style={{ fontSize: '12px', color: '#0097FF', fontWeight: '600' }}>PNG Download · A5 Portrait</span>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '6px' }}>
+          <div style={{ display: 'inline-block', padding: '3px 12px', borderRadius: '9999px', backgroundColor: '#EFF9FF' }}>
+            <span style={{ fontSize: '11px', color: '#0097FF', fontWeight: '600' }}>PNG Download · A5 Portrait</span>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: '#7E7E82' }}>✕</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', color: '#7E7E82' }}>✕</button>
         </div>
 
-        <h3 style={{ fontSize: '22px', fontWeight: '700', color: '#141415', margin: '12px 0 6px', lineHeight: '30px' }}>
-          You are downloading<br />
-          <span style={{ color: '#0097FF' }}>"{blog.title.slice(0, 50)}{blog.title.length > 50 ? '...' : ''}"</span>
+        <h3 style={{ fontSize: '19px', fontWeight: '700', color: '#141415', margin: '8px 0 4px', lineHeight: '26px' }}>
+          You are downloading <span style={{ color: '#0097FF' }}>"{blog.title.slice(0, 40)}{blog.title.length > 40 ? '...' : ''}"</span>
         </h3>
-        <p style={{ fontSize: '14px', color: '#7E7E82', marginBottom: '24px', lineHeight: '22px' }}>
-          Select which page(s) you'd like to download. Each page is formatted as an A5 portrait image.
+        <p style={{ fontSize: '13px', color: '#7E7E82', marginBottom: '16px', lineHeight: '19px' }}>
+          Select which page(s) you'd like to download.
         </p>
 
         {/* Preview row */}
-        <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginBottom: '16px' }}>
 
           {/* Page 1 card */}
-          <div style={{ border: '1px solid #E8E8EA', borderRadius: '12px', padding: '14px', backgroundColor: '#F9F9F9', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-            <p style={{ fontSize: '11px', color: '#A5A5AA', margin: 0, fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Page 1</p>
-            <div style={{ width: previewWidth + 'px', height: previewHeight + 'px', overflow: 'hidden', borderRadius: '6px', border: '1px solid #E8E8EA', backgroundColor: '#FFFFFF', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+          <div style={{ border: '1px solid #E8E8EA', borderRadius: '10px', padding: '10px', backgroundColor: '#F9F9F9', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+            <p style={{ fontSize: '9px', color: '#A5A5AA', margin: 0, fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Page 1</p>
+            <div style={{ width: previewWidth + 'px', height: previewHeight + 'px', overflow: 'hidden', borderRadius: '5px', border: '1px solid #E8E8EA', backgroundColor: '#FFFFFF', boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }}>
               <div style={{ transform: `scale(${previewScale})`, transformOrigin: 'top left', width: PAGE_WIDTH + 'px', pointerEvents: 'none' }}>
                 <div ref={page1Ref}>
                   <BlogPageForDownload blog={blog} contentSections={contentSections} pageNum={1} />
@@ -286,9 +295,9 @@ function DownloadModal({ blog, contentSections, onClose }) {
 
           {/* Page 2 card — only if there's overflow content */}
           {hasPage2 && (
-            <div style={{ border: '1px solid #E8E8EA', borderRadius: '12px', padding: '14px', backgroundColor: '#F9F9F9', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-              <p style={{ fontSize: '11px', color: '#A5A5AA', margin: 0, fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Page 2</p>
-              <div style={{ width: previewWidth + 'px', height: previewHeight + 'px', overflow: 'hidden', borderRadius: '6px', border: '1px solid #E8E8EA', backgroundColor: '#FFFFFF', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+            <div style={{ border: '1px solid #E8E8EA', borderRadius: '10px', padding: '10px', backgroundColor: '#F9F9F9', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+              <p style={{ fontSize: '9px', color: '#A5A5AA', margin: 0, fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Page 2</p>
+              <div style={{ width: previewWidth + 'px', height: previewHeight + 'px', overflow: 'hidden', borderRadius: '5px', border: '1px solid #E8E8EA', backgroundColor: '#FFFFFF', boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }}>
                 <div style={{ transform: `scale(${previewScale})`, transformOrigin: 'top left', width: PAGE_WIDTH + 'px', pointerEvents: 'none' }}>
                   <div ref={page2Ref}>
                     <BlogPageForDownload blog={blog} contentSections={contentSections} pageNum={2} />
@@ -301,33 +310,43 @@ function DownloadModal({ blog, contentSections, onClose }) {
         </div>
 
         {!canDownload && (
-          <p style={{ fontSize: '13px', color: '#D90870', textAlign: 'center', marginBottom: '16px' }}>
+          <p style={{ fontSize: '12px', color: '#D90870', textAlign: 'center', marginBottom: '10px' }}>
             Select at least one page to download.
           </p>
         )}
 
         {done && (
-          <div style={{ backgroundColor: '#F0FDF4', border: '1px solid #4CAF50', borderRadius: '8px', padding: '10px 16px', textAlign: 'center', fontSize: '14px', color: '#2E7D32', fontWeight: '500', marginBottom: '16px' }}>
+          <div style={{ backgroundColor: '#F0FDF4', border: '1px solid #4CAF50', borderRadius: '8px', padding: '8px 14px', textAlign: 'center', fontSize: '13px', color: '#2E7D32', fontWeight: '500', marginBottom: '10px' }}>
             ✅ Downloaded successfully!
           </div>
         )}
 
         {/* Buttons — below the designs */}
-        <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+        <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
           <button onClick={onClose}
-            style={{ flex: 1, height: '50px', borderRadius: '12px', border: '1px solid #E8E8EA', backgroundColor: '#FFFFFF', color: '#414143', fontSize: '15px', cursor: 'pointer' }}>
+            style={{ flex: 1, height: '46px', borderRadius: '10px', border: '1px solid #E8E8EA', backgroundColor: '#FFFFFF', color: '#414143', fontSize: '14px', cursor: 'pointer' }}>
             Cancel
           </button>
           <button onClick={handleDownload} disabled={downloading || !canDownload}
-            style={{ flex: 2, height: '50px', borderRadius: '12px', border: 'none', backgroundColor: (downloading || !canDownload) ? '#C7C7CA' : '#0097FF', color: '#FFFFFF', fontSize: '16px', fontWeight: '600', cursor: (downloading || !canDownload) ? 'not-allowed' : 'pointer', transition: 'background-color 0.2s ease' }}>
+            style={{ flex: 2, height: '46px', borderRadius: '10px', border: 'none', backgroundColor: (downloading || !canDownload) ? '#C7C7CA' : '#0097FF', color: '#FFFFFF', fontSize: '15px', fontWeight: '600', cursor: (downloading || !canDownload) ? 'not-allowed' : 'pointer', transition: 'background-color 0.2s ease' }}>
             {downloading ? 'Downloading...' : 'Download Blog as PNG'}
           </button>
         </div>
-
-        <p style={{ fontSize: '12px', color: '#A5A5AA', textAlign: 'center', marginTop: '16px' }}>
-          Downloaded from <strong style={{ color: '#0097FF' }}>www.eventhive.com</strong>
-        </p>
       </div>
+    </div>
+  )
+}
+
+// ── Social share icon button ──
+function SocialShareButton({ label, bg, onClick, icon }) {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
+      onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} onClick={onClick}>
+      <div style={{ width: '44px', height: '44px', borderRadius: '9999px', backgroundColor: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', transform: hovered ? 'scale(1.08)' : 'scale(1)', transition: 'transform 0.15s ease', boxShadow: hovered ? '0 4px 12px rgba(0,0,0,0.15)' : 'none' }}>
+        {icon}
+      </div>
+      <span style={{ fontSize: '11px', color: '#59595C' }}>{label}</span>
     </div>
   )
 }
@@ -366,6 +385,30 @@ function BlogDetail() {
       setNotFound(true)
     }
     setLoading(false)
+  }
+
+  // ── Social share handlers ──
+  const shareUrl = typeof window !== 'undefined' ? window.location.href : ''
+  const shareTitle = blog ? blog.title : ''
+
+  const handleSocialShare = (platform) => {
+    const encodedUrl = encodeURIComponent(shareUrl)
+    const encodedText = encodeURIComponent(shareTitle)
+    const links = {
+      whatsapp: `https://wa.me/?text=${encodedText}%20${encodedUrl}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+      twitter: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedText}`,
+      telegram: `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+    }
+    if (platform === 'instagram' || platform === 'tiktok') {
+      // Instagram / TikTok don't support direct web share links — copy the link instead
+      navigator.clipboard.writeText(shareUrl)
+      setShareCopied(true)
+      setTimeout(() => setShareCopied(false), 2500)
+      return
+    }
+    window.open(links[platform], '_blank', 'noopener,noreferrer')
   }
 
   if (loading) {
@@ -627,18 +670,54 @@ function BlogDetail() {
       {showShareModal && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           onClick={(e) => { if (e.target === e.currentTarget) setShowShareModal(false) }}>
-          <div style={{ width: '420px', backgroundColor: '#FFFFFF', borderRadius: '16px', padding: '32px', position: 'relative', boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
+          <div style={{ width: '440px', backgroundColor: '#FFFFFF', borderRadius: '16px', padding: '32px', position: 'relative', boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
             <button onClick={() => setShowShareModal(false)} style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: '#7E7E82' }}>✕</button>
             <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#141415', marginBottom: '8px' }}>Share this Blog</h3>
-            <p style={{ fontSize: '14px', color: '#7E7E82', marginBottom: '20px' }}>Copy the link below to share</p>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <input readOnly value={window.location.href}
+            <p style={{ fontSize: '14px', color: '#7E7E82', marginBottom: '20px' }}>Copy the link below or share directly</p>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
+              <input readOnly value={shareUrl}
                 style={{ flex: 1, height: '44px', borderRadius: '8px', border: '1px solid #E8E8EA', padding: '0 12px', fontSize: '13px', color: '#414143', outline: 'none', backgroundColor: '#F9F9F9' }} />
-              <button onClick={() => { navigator.clipboard.writeText(window.location.href); setShareCopied(true); setTimeout(() => setShareCopied(false), 2000) }}
+              <button onClick={() => { navigator.clipboard.writeText(shareUrl); setShareCopied(true); setTimeout(() => setShareCopied(false), 2000) }}
                 style={{ height: '44px', padding: '0 18px', borderRadius: '8px', border: 'none', backgroundColor: '#0097FF', color: '#FFFFFF', fontSize: '14px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                 {shareCopied ? '✅ Copied!' : 'Copy Link'}
               </button>
             </div>
+
+            {/* Social platform icons */}
+            <p style={{ fontSize: '12px', fontWeight: '600', color: '#A5A5AA', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '14px' }}>
+              Or share via
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px 8px' }}>
+              <SocialShareButton label="WhatsApp" bg="#25D366" onClick={() => handleSocialShare('whatsapp')}
+                icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.28-1.38a9.87 9.87 0 0 0 4.71 1.2h.01c5.46 0 9.9-4.45 9.9-9.91S17.5 2 12.04 2zm5.8 14.13c-.24.68-1.4 1.3-1.93 1.38-.5.08-1.12.11-1.81-.11-.42-.13-.95-.31-1.64-.6-2.88-1.24-4.76-4.14-4.9-4.34-.14-.19-1.17-1.56-1.17-2.97 0-1.41.74-2.11 1-2.4.26-.29.57-.36.76-.36.19 0 .38 0 .55.01.18.01.41-.07.64.49.24.57.81 1.98.88 2.12.07.14.12.31.02.5-.1.19-.15.31-.29.48-.14.17-.3.37-.43.5-.14.14-.29.29-.13.57.17.28.75 1.24 1.61 2.01 1.11.99 2.04 1.3 2.32 1.44.28.14.44.12.6-.07.17-.19.71-.83.9-1.11.19-.28.38-.24.64-.14.26.1 1.65.78 1.94.92.28.14.47.21.54.33.07.12.07.68-.17 1.36z"/></svg>}
+              />
+              <SocialShareButton label="Facebook" bg="#1877F2" onClick={() => handleSocialShare('facebook')}
+                icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5 3.66 9.13 8.44 9.94v-7.03H7.9v-2.91h2.54V9.85c0-2.51 1.49-3.9 3.77-3.9 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.89h2.78l-.44 2.91h-2.34V22c4.78-.81 8.44-4.94 8.44-9.94z"/></svg>}
+              />
+              <SocialShareButton label="X" bg="#000000" onClick={() => handleSocialShare('twitter')}
+                icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M18.9 2H22l-7.6 8.68L23.3 22h-6.9l-5.4-7.07L4.8 22H1.7l8.1-9.26L1 2h7.1l4.9 6.47L18.9 2zm-1.2 18h1.9L7.4 4h-2l12.3 16z"/></svg>}
+              />
+              <SocialShareButton label="Telegram" bg="#229ED9" onClick={() => handleSocialShare('telegram')}
+                icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M21.9 3.5L2.7 11c-.9.35-.9.9-.16 1.13l4.9 1.53 1.9 5.86c.24.66.42.92.86.92.34 0 .5-.16.7-.36l1.9-1.85 4.94 3.66c.9.5 1.55.24 1.78-.84L23.9 4.94c.32-1.35-.5-1.96-1.5-1.44zM8.8 14.4l9.2-5.8c.44-.27.83-.12.5.17l-7.5 6.83-.29 3.1z"/></svg>}
+              />
+              <SocialShareButton label="LinkedIn" bg="#0A66C2" onClick={() => handleSocialShare('linkedin')}
+                icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.03-1.85-3.03-1.85 0-2.14 1.45-2.14 2.94v5.66H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>}
+              />
+              <SocialShareButton label="Instagram" bg="#E1306C" onClick={() => handleSocialShare('instagram')}
+                icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>}
+              />
+              <SocialShareButton label="TikTok" bg="#000000" onClick={() => handleSocialShare('tiktok')}
+                icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M16.6 5.82c-1.05-1.02-1.6-2.35-1.6-3.82h-3.15v13.44a2.68 2.68 0 1 1-2.68-2.68c.29 0 .57.05.83.13V9.7a5.8 5.8 0 0 0-.83-.06 5.83 5.83 0 1 0 5.83 5.83V9.06a7.1 7.1 0 0 0 4.15 1.33V7.24c-.99 0-1.9-.32-2.55-1.42z"/></svg>}
+              />
+              <SocialShareButton label="More" bg="#7E7E82" onClick={() => { if (navigator.share) { navigator.share({ title: shareTitle, url: shareUrl }) } else { navigator.clipboard.writeText(shareUrl); setShareCopied(true); setTimeout(() => setShareCopied(false), 2000) } }}
+                icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>}
+              />
+            </div>
+            {shareCopied && (
+              <p style={{ fontSize: '12px', color: '#2E7D32', textAlign: 'center', marginTop: '14px' }}>
+                Link copied — paste it into your Instagram/TikTok post or story.
+              </p>
+            )}
           </div>
         </div>
       )}
