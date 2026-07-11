@@ -107,6 +107,10 @@ function NavCard({ card }) {
   )
 }
 
+// ── A5 Portrait page dimensions (148mm x 210mm @ ~150dpi) ──
+const PAGE_WIDTH = 874
+const PAGE_HEIGHT = 1240
+
 // ── PNG Download Preview component (hidden, used for capture) ──
 function BlogPageForDownload({ blog, contentSections, pageNum }) {
   const page1Sections = contentSections.slice(0, 2)
@@ -115,55 +119,85 @@ function BlogPageForDownload({ blog, contentSections, pageNum }) {
 
   return (
     <div style={{
-      width: '900px',
+      width: PAGE_WIDTH + 'px',
+      minHeight: PAGE_HEIGHT + 'px',
       backgroundColor: '#FFFFFF',
-      padding: '32px 24px 24px 24px',
+      padding: '48px 44px 40px 44px',
       fontFamily: 'sans-serif',
       position: 'relative',
+      boxSizing: 'border-box',
+      display: 'flex',
+      flexDirection: 'column',
     }}>
-      {/* Page 1 only: Title, Published by, Date */}
-      {pageNum === 1 && (
-        <div style={{ marginBottom: '32px' }}>
-          <h1 style={{ fontSize: '28px', fontWeight: '800', color: '#0097FF', lineHeight: '36px', marginBottom: '10px' }}>
-            {blog.title}
-          </h1>
-          <p style={{ fontSize: '16px', fontWeight: '700', color: '#0097FF', margin: '0 0 6px' }}>
-            Published by {blog.author_name || 'Author'}
-          </p>
-          <p style={{ fontSize: '15px', color: '#141415', fontWeight: '700', margin: 0 }}>
-            {new Date(blog.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-          </p>
-        </div>
-      )}
-
-      {/* Page 2 only: continuation label */}
-      {pageNum === 2 && (
-        <div style={{ marginBottom: '24px' }}>
-          <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#0097FF', margin: 0 }}>
-            {blog.title} — continued
-          </h2>
-        </div>
-      )}
-
-      {/* Content Sections */}
-      {sections.map((section, i) => (
-        <div key={i} style={{ marginBottom: '24px' }}>
-          {section.subtitle && section.subtitle.trim() && (
-            <p style={{ fontSize: '17px', fontWeight: '700', color: '#414143', margin: '0 0 8px', lineHeight: '24px' }}>
-              {section.subtitle}
+      <div style={{ flex: 1 }}>
+        {/* Page 1 only: Title, Published by, Date */}
+        {pageNum === 1 && (
+          <div style={{ marginBottom: '32px' }}>
+            <h1 style={{ fontSize: '30px', fontWeight: '800', color: '#0097FF', lineHeight: '38px', marginBottom: '12px' }}>
+              {blog.title}
+            </h1>
+            <p style={{ fontSize: '16px', fontWeight: '700', color: '#0097FF', margin: '0 0 6px' }}>
+              Published by {blog.author_name || 'Author'}
             </p>
-          )}
-          <p style={{ fontSize: '14px', color: '#59595C', lineHeight: '24px', margin: 0, whiteSpace: 'pre-line' }}>
-            {section.content}
-          </p>
-        </div>
-      ))}
+            <p style={{ fontSize: '15px', color: '#141415', fontWeight: '700', margin: 0 }}>
+              {new Date(blog.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            </p>
+          </div>
+        )}
 
-      {/* Footer watermark */}
-      <div style={{ marginTop: '40px', textAlign: 'right' }}>
+        {/* Page 2 only: continuation label */}
+        {pageNum === 2 && (
+          <div style={{ marginBottom: '28px' }}>
+            <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#0097FF', margin: 0 }}>
+              {blog.title} — continued
+            </h2>
+          </div>
+        )}
+
+        {/* Content Sections */}
+        {sections.map((section, i) => (
+          <div key={i} style={{ marginBottom: '26px' }}>
+            {section.subtitle && section.subtitle.trim() && (
+              <p style={{ fontSize: '18px', fontWeight: '700', color: '#414143', margin: '0 0 10px', lineHeight: '26px' }}>
+                {section.subtitle}
+              </p>
+            )}
+            <p style={{ fontSize: '15px', color: '#59595C', lineHeight: '26px', margin: 0, whiteSpace: 'pre-line' }}>
+              {section.content}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* Footer watermark — pinned to bottom of the A5 page */}
+      <div style={{ marginTop: '40px', textAlign: 'right', borderTop: '1px solid #F0F0F1', paddingTop: '16px' }}>
         <span style={{ fontSize: '13px', color: '#A5A5AA' }}>Downloaded from www.eventhive.com</span>
       </div>
     </div>
+  )
+}
+
+// ── Checkbox used for page selection ──
+function PageCheckbox({ checked, onChange, disabled, label }) {
+  return (
+    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: disabled ? 'not-allowed' : 'pointer', userSelect: 'none' }}>
+      <div
+        onClick={() => { if (!disabled) onChange(!checked) }}
+        style={{
+          width: '20px', height: '20px', borderRadius: '6px',
+          border: '2px solid ' + (checked ? '#0097FF' : '#C7C7CA'),
+          backgroundColor: checked ? '#0097FF' : '#FFFFFF',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: 'all 0.15s ease', opacity: disabled ? 0.5 : 1, flexShrink: 0,
+        }}>
+        {checked && (
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        )}
+      </div>
+      <span style={{ fontSize: '14px', fontWeight: '600', color: '#141415' }}>{label}</span>
+    </label>
   )
 }
 
@@ -174,18 +208,31 @@ function DownloadModal({ blog, contentSections, onClose }) {
   const [downloading, setDownloading] = useState(false)
   const [done, setDone] = useState(false)
 
+  const hasPage2 = contentSections.length > 2
+  const [includePage1, setIncludePage1] = useState(true)
+  const [includePage2, setIncludePage2] = useState(hasPage2)
+
+  const canDownload = includePage1 || (hasPage2 && includePage2)
+
+  const previewScale = 0.32
+  const previewWidth = PAGE_WIDTH * previewScale
+  const previewHeight = PAGE_HEIGHT * previewScale
+
   const handleDownload = async () => {
+    if (!canDownload || downloading) return
     setDownloading(true)
     try {
-      if (page1Ref.current) {
+      if (includePage1 && page1Ref.current) {
         const png1 = await toPng(page1Ref.current, { quality: 1, pixelRatio: 2 })
         const a1 = document.createElement('a')
         a1.href = png1
         a1.download = blog.title.slice(0, 30).replace(/\s/g, '_') + '_page1.png'
         a1.click()
       }
-      await new Promise((res) => setTimeout(res, 400))
-      if (page2Ref.current && contentSections.length > 2) {
+      if (includePage1 && includePage2 && hasPage2) {
+        await new Promise((res) => setTimeout(res, 400))
+      }
+      if (includePage2 && hasPage2 && page2Ref.current) {
         const png2 = await toPng(page2Ref.current, { quality: 1, pixelRatio: 2 })
         const a2 = document.createElement('a')
         a2.href = png2
@@ -203,97 +250,83 @@ function DownloadModal({ blog, contentSections, onClose }) {
   return (
     <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,12,20,0.75)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
-      <div style={{ width: '880px', maxHeight: '88vh', backgroundColor: '#FFFFFF', borderRadius: '24px', overflow: 'hidden', display: 'grid', gridTemplateColumns: '420px 1fr', boxShadow: '0 24px 64px rgba(0,0,0,0.25)' }}>
+      <div style={{ width: '720px', maxWidth: '100%', maxHeight: '90vh', backgroundColor: '#FFFFFF', borderRadius: '24px', overflowY: 'auto', boxShadow: '0 24px 64px rgba(0,0,0,0.25)', padding: '32px' }}>
 
-        {/* Left — Preview */}
-        <div style={{ backgroundColor: '#F3F3F4', padding: '24px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <p style={{ fontSize: '12px', fontWeight: '600', color: '#7E7E82', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 8px' }}>Preview</p>
-
-          {/* Page 1 preview */}
-          <div>
-            <p style={{ fontSize: '11px', color: '#A5A5AA', margin: '0 0 6px' }}>Page 1</p>
-            <div style={{ transform: 'scale(0.42)', transformOrigin: 'top left', width: '900px', pointerEvents: 'none' }}>
-              <div ref={page1Ref}>
-                <BlogPageForDownload blog={blog} contentSections={contentSections} pageNum={1} />
-              </div>
-            </div>
-            <div style={{ height: Math.max(120, contentSections.slice(0,2).reduce((a,s) => a + (s.content || '').length * 0.18, 220)) + 'px' }} />
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '8px' }}>
+          <div style={{ display: 'inline-block', padding: '4px 14px', borderRadius: '9999px', backgroundColor: '#EFF9FF' }}>
+            <span style={{ fontSize: '12px', color: '#0097FF', fontWeight: '600' }}>PNG Download · A5 Portrait</span>
           </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: '#7E7E82' }}>✕</button>
+        </div>
 
-          {/* Page 2 preview only if there are sections 3+ */}
-          {contentSections.length > 2 && (
-            <div>
-              <p style={{ fontSize: '11px', color: '#A5A5AA', margin: '0 0 6px' }}>Page 2</p>
-              <div style={{ transform: 'scale(0.42)', transformOrigin: 'top left', width: '900px', pointerEvents: 'none' }}>
-                <div ref={page2Ref}>
-                  <BlogPageForDownload blog={blog} contentSections={contentSections} pageNum={2} />
+        <h3 style={{ fontSize: '22px', fontWeight: '700', color: '#141415', margin: '12px 0 6px', lineHeight: '30px' }}>
+          You are downloading<br />
+          <span style={{ color: '#0097FF' }}>"{blog.title.slice(0, 50)}{blog.title.length > 50 ? '...' : ''}"</span>
+        </h3>
+        <p style={{ fontSize: '14px', color: '#7E7E82', marginBottom: '24px', lineHeight: '22px' }}>
+          Select which page(s) you'd like to download. Each page is formatted as an A5 portrait image.
+        </p>
+
+        {/* Preview row */}
+        <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '24px' }}>
+
+          {/* Page 1 card */}
+          <div style={{ border: '1px solid #E8E8EA', borderRadius: '12px', padding: '14px', backgroundColor: '#F9F9F9', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+            <p style={{ fontSize: '11px', color: '#A5A5AA', margin: 0, fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Page 1</p>
+            <div style={{ width: previewWidth + 'px', height: previewHeight + 'px', overflow: 'hidden', borderRadius: '6px', border: '1px solid #E8E8EA', backgroundColor: '#FFFFFF', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+              <div style={{ transform: `scale(${previewScale})`, transformOrigin: 'top left', width: PAGE_WIDTH + 'px', pointerEvents: 'none' }}>
+                <div ref={page1Ref}>
+                  <BlogPageForDownload blog={blog} contentSections={contentSections} pageNum={1} />
                 </div>
               </div>
-              <div style={{ height: Math.max(100, contentSections.slice(2,5).reduce((a,s) => a + (s.content || '').length * 0.18, 140)) + 'px' }} />
+            </div>
+            <PageCheckbox checked={includePage1} onChange={setIncludePage1} label="Include Page 1" />
+          </div>
+
+          {/* Page 2 card — only if there's overflow content */}
+          {hasPage2 && (
+            <div style={{ border: '1px solid #E8E8EA', borderRadius: '12px', padding: '14px', backgroundColor: '#F9F9F9', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+              <p style={{ fontSize: '11px', color: '#A5A5AA', margin: 0, fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Page 2</p>
+              <div style={{ width: previewWidth + 'px', height: previewHeight + 'px', overflow: 'hidden', borderRadius: '6px', border: '1px solid #E8E8EA', backgroundColor: '#FFFFFF', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+                <div style={{ transform: `scale(${previewScale})`, transformOrigin: 'top left', width: PAGE_WIDTH + 'px', pointerEvents: 'none' }}>
+                  <div ref={page2Ref}>
+                    <BlogPageForDownload blog={blog} contentSections={contentSections} pageNum={2} />
+                  </div>
+                </div>
+              </div>
+              <PageCheckbox checked={includePage2} onChange={setIncludePage2} label="Include Page 2" />
             </div>
           )}
         </div>
 
-        {/* Right — Info + Buttons */}
-        <div style={{ padding: '36px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          <div>
-            <button onClick={onClose} style={{ float: 'right', background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: '#7E7E82' }}>✕</button>
-            <div style={{ clear: 'both' }} />
+        {!canDownload && (
+          <p style={{ fontSize: '13px', color: '#D90870', textAlign: 'center', marginBottom: '16px' }}>
+            Select at least one page to download.
+          </p>
+        )}
 
-            <div style={{ display: 'inline-block', padding: '4px 14px', borderRadius: '9999px', backgroundColor: '#EFF9FF', marginBottom: '20px' }}>
-              <span style={{ fontSize: '12px', color: '#0097FF', fontWeight: '600' }}>PNG Download</span>
-            </div>
-
-            <h3 style={{ fontSize: '22px', fontWeight: '700', color: '#141415', marginBottom: '10px', lineHeight: '30px' }}>
-              You are downloading<br />
-              <span style={{ color: '#0097FF' }}>"{blog.title.slice(0, 50)}{blog.title.length > 50 ? '...' : ''}"</span>
-            </h3>
-
-            <p style={{ fontSize: '14px', color: '#7E7E82', marginBottom: '24px', lineHeight: '22px' }}>
-              This blog will be downloaded as PNG images. Each page contains the formatted content as uploaded.
-            </p>
-
-            <div style={{ backgroundColor: '#F9F9F9', borderRadius: '12px', padding: '16px', marginBottom: '24px' }}>
-              <div style={{ display: 'flex', gap: '16px' }}>
-                <div style={{ textAlign: 'center', flex: 1 }}>
-                  <div style={{ fontSize: '24px', fontWeight: '700', color: '#0097FF' }}>1</div>
-                  <div style={{ fontSize: '12px', color: '#7E7E82' }}>Page 1</div>
-                  <div style={{ fontSize: '11px', color: '#A5A5AA' }}>Title + first 2 sections</div>
-                </div>
-                {contentSections.length > 2 && (
-                  <>
-                    <div style={{ width: '1px', backgroundColor: '#E8E8EA' }} />
-                    <div style={{ textAlign: 'center', flex: 1 }}>
-                      <div style={{ fontSize: '24px', fontWeight: '700', color: '#0097FF' }}>2</div>
-                      <div style={{ fontSize: '12px', color: '#7E7E82' }}>Page 2</div>
-                      <div style={{ fontSize: '11px', color: '#A5A5AA' }}>Remaining sections</div>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-
-            <p style={{ fontSize: '12px', color: '#A5A5AA' }}>
-              Downloaded from <strong style={{ color: '#0097FF' }}>www.eventhive.com</strong>
-            </p>
+        {done && (
+          <div style={{ backgroundColor: '#F0FDF4', border: '1px solid #4CAF50', borderRadius: '8px', padding: '10px 16px', textAlign: 'center', fontSize: '14px', color: '#2E7D32', fontWeight: '500', marginBottom: '16px' }}>
+            ✅ Downloaded successfully!
           </div>
+        )}
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {done && (
-              <div style={{ backgroundColor: '#F0FDF4', border: '1px solid #4CAF50', borderRadius: '8px', padding: '10px 16px', textAlign: 'center', fontSize: '14px', color: '#2E7D32', fontWeight: '500' }}>
-                ✅ Downloaded successfully!
-              </div>
-            )}
-            <button onClick={handleDownload} disabled={downloading}
-              style={{ width: '100%', height: '52px', borderRadius: '12px', border: 'none', backgroundColor: downloading ? '#C7C7CA' : '#0097FF', color: '#FFFFFF', fontSize: '16px', fontWeight: '600', cursor: downloading ? 'not-allowed' : 'pointer', transition: 'background-color 0.2s ease' }}>
-              {downloading ? 'Downloading...' : 'Download Blog as PNG'}
-            </button>
-            <button onClick={onClose}
-              style={{ width: '100%', height: '48px', borderRadius: '12px', border: '1px solid #E8E8EA', backgroundColor: '#FFFFFF', color: '#414143', fontSize: '15px', cursor: 'pointer' }}>
-              Cancel
-            </button>
-          </div>
+        {/* Buttons — below the designs */}
+        <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+          <button onClick={onClose}
+            style={{ flex: 1, height: '50px', borderRadius: '12px', border: '1px solid #E8E8EA', backgroundColor: '#FFFFFF', color: '#414143', fontSize: '15px', cursor: 'pointer' }}>
+            Cancel
+          </button>
+          <button onClick={handleDownload} disabled={downloading || !canDownload}
+            style={{ flex: 2, height: '50px', borderRadius: '12px', border: 'none', backgroundColor: (downloading || !canDownload) ? '#C7C7CA' : '#0097FF', color: '#FFFFFF', fontSize: '16px', fontWeight: '600', cursor: (downloading || !canDownload) ? 'not-allowed' : 'pointer', transition: 'background-color 0.2s ease' }}>
+            {downloading ? 'Downloading...' : 'Download Blog as PNG'}
+          </button>
         </div>
+
+        <p style={{ fontSize: '12px', color: '#A5A5AA', textAlign: 'center', marginTop: '16px' }}>
+          Downloaded from <strong style={{ color: '#0097FF' }}>www.eventhive.com</strong>
+        </p>
       </div>
     </div>
   )
