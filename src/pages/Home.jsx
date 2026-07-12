@@ -8,6 +8,7 @@ import TestimonialSection from '../components/TestimonialSection'
 import SubscribeSection from '../components/SubscribeSection'
 import FAQSection from '../components/FAQSection'
 import Footer from '../components/Footer'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 const words = [
   { text: 'Find',   color: '#FFB5DA' },
@@ -57,14 +58,7 @@ function AnimatedWord() {
   }, [])
 
   return (
-    <span
-      style={{
-        color: words[index].color,
-        transition: 'opacity 300ms ease-out',
-        opacity: visible ? 1 : 0,
-        display: 'inline-block',
-      }}
-    >
+    <span style={{ color: words[index].color, transition: 'opacity 300ms ease-out', opacity: visible ? 1 : 0, display: 'inline-block' }}>
       {words[index].text}
     </span>
   )
@@ -74,6 +68,7 @@ function Home() {
   const [searchText, setSearchText] = useState('')
   const [eventType, setEventType] = useState('')
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
 
   const handleSearch = () => {
     navigate(`/search?q=${searchText}&type=${eventType}`)
@@ -86,25 +81,44 @@ function Home() {
       {/* ── HERO SECTION ── */}
       <section
         className="relative w-full flex items-center justify-center bg-blue-900"
-        style={{ height: '604px', maxWidth: '1440px', margin: '0 auto' }}
+        style={{ height: isMobile ? 'auto' : '604px', minHeight: isMobile ? '520px' : undefined, maxWidth: '1440px', margin: '0 auto', padding: isMobile ? '48px 0' : 0 }}
       >
         <img src={heroImg} alt="Hero" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 bg-blue-900" style={{ opacity: 0.6 }} />
         <div
           className="relative z-10 flex flex-col items-center text-center"
-          style={{ paddingLeft: '100px', paddingRight: '100px' }}
+          style={{ paddingLeft: isMobile ? '20px' : '100px', paddingRight: isMobile ? '20px' : '100px' }}
         >
-          <h1 className="text-white font-bold" style={{ fontSize: '60px', lineHeight: '72px' }}>
-            <AnimatedWord /> Unforgettable Experiences Near You
+          <h1 className="text-white font-bold" style={{ fontSize: isMobile ? '32px' : '60px', lineHeight: isMobile ? '40px' : '72px' }}>
+            <AnimatedWord /> {isMobile ? 'unforgettable experiences near you.' : 'Unforgettable Experiences Near You'}
           </h1>
-          <p className="text-white text-h6" style={{ marginTop: '36px' }}>
-            Explore exciting events happening around you and never miss out on the fun.
-          </p>
+          {!isMobile && (
+            <p className="text-white text-h6" style={{ marginTop: '36px' }}>
+              Explore exciting events happening around you and never miss out on the fun.
+            </p>
+          )}
+          {isMobile && (
+            <p style={{ color: '#FFFFFF', fontSize: '14px', marginTop: '12px', opacity: 0.9 }}>
+              Explore exciting events happening around you and never miss out on the fun.
+            </p>
+          )}
+
           <div
-            className="flex items-center bg-white rounded-lg overflow-hidden shadow-card"
-            style={{ width: '706px', height: '72px', marginTop: '40px' }}
+            className="flex bg-white rounded-lg overflow-hidden shadow-card"
+            style={
+              isMobile
+                ? { width: '100%', maxWidth: '340px', flexDirection: 'column', marginTop: '28px' }
+                : { width: '706px', height: '72px', marginTop: '40px', alignItems: 'center' }
+            }
           >
-            <div className="flex items-center gap-2 px-5 border-r border-grey-200 h-full" style={{ minWidth: '200px' }}>
+            <div
+              className="flex items-center gap-2 px-5 border-grey-200"
+              style={
+                isMobile
+                  ? { width: '100%', height: '52px', borderBottom: '1px solid #E8E8EA', boxSizing: 'border-box' }
+                  : { minWidth: '200px', height: '100%', borderRight: '1px solid #E8E8EA' }
+              }
+            >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#414143" strokeWidth="2">
                 <line x1="4" y1="6" x2="20" y2="6"/>
                 <line x1="8" y1="12" x2="20" y2="12"/>
@@ -131,11 +145,17 @@ function Home() {
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              className="flex-1 px-5 text-p1 text-grey-700 placeholder-grey-400 outline-none h-full"
+              className="flex-1 px-5 text-p1 text-grey-700 placeholder-grey-400 outline-none"
+              style={isMobile ? { width: '100%', height: '52px', boxSizing: 'border-box', borderBottom: '1px solid #E8E8EA' } : { height: '100%' }}
             />
             <button
               onClick={handleSearch}
-              className="btn-primary h-full px-8 rounded-none rounded-r-lg flex items-center gap-2"
+              className="btn-primary flex items-center justify-center gap-2"
+              style={
+                isMobile
+                  ? { width: '100%', height: '52px', borderRadius: 0 }
+                  : { height: '100%', padding: '0 32px', borderRadius: '0 8px 8px 0' }
+              }
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
                 <circle cx="11" cy="11" r="8"/>
@@ -148,48 +168,54 @@ function Home() {
       </section>
 
       {/* ── CATEGORY SECTION ── */}
-      <section className="bg-white" style={{ maxWidth: '1440px', margin: '0 auto', padding: '80px 100px' }}>
+      <section className="bg-white" style={{ maxWidth: '1440px', margin: '0 auto', padding: isMobile ? '48px 20px' : '80px 100px' }}>
         <div className="text-center mb-10">
-          <h2 className="font-bold text-grey-800" style={{ fontSize: '60px', lineHeight: '72px' }}>Browse by Category</h2>
-          <p className="text-grey-800 text-h6 mt-2">Find events that match your interests</p>
+          <h2 className="font-bold text-grey-800" style={{ fontSize: isMobile ? '28px' : '60px', lineHeight: isMobile ? '36px' : '72px' }}>Browse by Category</h2>
+          <p className="text-grey-800 mt-2" style={{ fontSize: isMobile ? '14px' : undefined }}>Find events that match your interests</p>
         </div>
-        <CategoryCarousel onSelect={(cat) => navigate(`/category?type=${cat}`)} />
+        <div style={isMobile ? { overflowX: 'auto', WebkitOverflowScrolling: 'touch' } : undefined}>
+          <CategoryCarousel onSelect={(cat) => navigate(`/category?type=${cat}`)} />
+        </div>
       </section>
 
       {/* ── RECENT UPLOADS SECTION ── */}
-      <section className="bg-white" style={{ maxWidth: '1440px', margin: '0 auto', padding: '80px 100px' }}>
+      <section className="bg-white" style={{ maxWidth: '1440px', margin: '0 auto', padding: isMobile ? '32px 20px' : '80px 100px' }}>
         <div className="text-center mb-10">
-          <h2 className="font-bold text-grey-800" style={{ fontSize: '60px', lineHeight: '72px' }}>Recent Uploads</h2>
-          <p className="text-grey-800 text-h6 mt-2">Don't miss out on these must-attend events happening soon</p>
+          <h2 className="font-bold text-grey-800" style={{ fontSize: isMobile ? '24px' : '60px', lineHeight: isMobile ? '32px' : '72px' }}>Recent Uploads</h2>
+          <p className="text-grey-800 mt-2" style={{ fontSize: isMobile ? '13px' : undefined }}>Don't miss out on these must-attend events happening soon</p>
         </div>
-        <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(4, 296px)', justifyContent: 'center' }}>
+        <div
+          className="grid"
+          style={isMobile
+            ? { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }
+            : { gridTemplateColumns: 'repeat(4, 296px)', gap: '24px', justifyContent: 'center' }
+          }
+        >
           {sampleEvents.map((event) => (<EventCard key={event.id} event={event} />))}
         </div>
       </section>
 
       {/* ── TRENDING EVENTS SECTION ── */}
-      <section className="bg-white" style={{ maxWidth: '1440px', margin: '0 auto', padding: '80px 100px' }}>
+      <section className="bg-white" style={{ maxWidth: '1440px', margin: '0 auto', padding: isMobile ? '32px 20px' : '80px 100px' }}>
         <div className="text-center mb-10">
-          <h2 className="font-bold text-grey-800" style={{ fontSize: '60px', lineHeight: '72px' }}>Trending Events</h2>
-          <p className="text-grey-800 text-h6 mt-2">Check out the hottest upcoming events curated just for you.</p>
+          <h2 className="font-bold text-grey-800" style={{ fontSize: isMobile ? '24px' : '60px', lineHeight: isMobile ? '32px' : '72px' }}>Trending Events</h2>
+          <p className="text-grey-800 mt-2" style={{ fontSize: isMobile ? '13px' : undefined }}>Check out the hottest upcoming events curated just for you.</p>
         </div>
-        <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(4, 296px)', justifyContent: 'center' }}>
+        <div
+          className="grid"
+          style={isMobile
+            ? { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }
+            : { gridTemplateColumns: 'repeat(4, 296px)', gap: '24px', justifyContent: 'center' }
+          }
+        >
           {trendingEvents.map((event) => (<EventCard key={event.id} event={event} />))}
         </div>
       </section>
 
-      {/* ── TESTIMONIALS SECTION ── */}
       <TestimonialSection />
-
-      {/* ── SUBSCRIBE SECTION ── */}
       <SubscribeSection />
-
-      {/* ── FAQ SECTION ── */}
       <FAQSection />
-
-      {/* ── FOOTER ── */}
       <Footer />
-
     </div>
   )
 }

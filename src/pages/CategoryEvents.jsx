@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { supabase } from '../supabaseClient'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 const eventCategories = [
   { label: 'All Events', icon: '🎪' }, { label: 'Concert', icon: '🎵' },
@@ -36,32 +37,33 @@ const sampleEvents = Array.from({ length: 12 }, (_, i) => ({
   event_days: 'one',
 }))
 
-function AnimatedBannerCards() {
+function AnimatedBannerCards({ isMobile }) {
   const [hovered, setHovered] = useState(false)
+  const size = isMobile ? 100 : 228
+  const cardW = isMobile ? 68 : 155
+  const cardH = isMobile ? 80 : 182
+  const radius = isMobile ? '16px' : '32px'
   return (
-    <div style={{ position: 'relative', width: '228px', height: '228px', flexShrink: 0 }}
+    <div style={{ position: 'relative', width: size + 'px', height: size + 'px', flexShrink: 0 }}
       onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
-      <div style={{ position: 'absolute', top: 0, right: 0, width: '155px', height: '182px', borderRadius: '32px', overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', transition: 'transform 0.4s ease', zIndex: 1, transform: hovered ? 'rotate(-12deg) translateX(-8px)' : 'rotate(-8deg)' }}>
+      <div style={{ position: 'absolute', top: 0, right: 0, width: cardW + 'px', height: cardH + 'px', borderRadius: radius, overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', transition: 'transform 0.4s ease', zIndex: 1, transform: hovered ? 'rotate(-12deg) translateX(-8px)' : 'rotate(-8deg)' }}>
         <img src={bannerImages[2]} alt="Event" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       </div>
-      <div style={{ position: 'absolute', top: '20px', left: '20px', width: '155px', height: '182px', borderRadius: '32px', overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', transition: 'transform 0.4s ease', zIndex: 2, transform: hovered ? 'rotate(6deg) translateY(-8px)' : 'rotate(4deg)' }}>
+      <div style={{ position: 'absolute', top: (isMobile ? '10px' : '20px'), left: (isMobile ? '10px' : '20px'), width: cardW + 'px', height: cardH + 'px', borderRadius: radius, overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', transition: 'transform 0.4s ease', zIndex: 2, transform: hovered ? 'rotate(6deg) translateY(-8px)' : 'rotate(4deg)' }}>
         <img src={bannerImages[1]} alt="Event" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       </div>
-      <div style={{ position: 'absolute', top: '36px', left: 0, width: '155px', height: '182px', borderRadius: '32px', overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.15)', transition: 'transform 0.4s ease', zIndex: 3, transform: hovered ? 'rotate(-3deg) translateY(-12px)' : 'rotate(-2deg)' }}>
+      <div style={{ position: 'absolute', top: (isMobile ? '16px' : '36px'), left: 0, width: cardW + 'px', height: cardH + 'px', borderRadius: radius, overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.15)', transition: 'transform 0.4s ease', zIndex: 3, transform: hovered ? 'rotate(-3deg) translateY(-12px)' : 'rotate(-2deg)' }}>
         <img src={bannerImages[0]} alt="Event" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       </div>
     </div>
   )
 }
 
-function EventCard({ event }) {
+function EventCard({ event, isMobile }) {
   const [hovered, setHovered] = useState(false)
   const [liked, setLiked] = useState(false)
   const navigate = useNavigate()
 
-  // ── Badge logic ──
-  // If event_days is 'everyday', always show "Everyday" pill
-  // Otherwise calculate days left normally
   const isEveryday = event.event_days === 'everyday'
   const daysLeft = event.event_date && !isEveryday
     ? Math.ceil((new Date(event.event_date) - new Date()) / (1000 * 60 * 60 * 24))
@@ -77,54 +79,63 @@ function EventCard({ event }) {
     <div
       onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       onClick={() => navigate('/events/' + event.id)}
-      style={{ width: '100%', borderRadius: '16px', overflow: 'hidden', cursor: 'pointer', boxShadow: hovered ? '0 8px 24px rgba(0,0,0,0.15)' : '0 2px 8px rgba(0,0,0,0.08)', transition: 'all 0.3s ease', transform: hovered ? 'translateY(-4px)' : 'translateY(0)', backgroundColor: '#FFFFFF', marginBottom: '24px' }}
+      style={{ width: '100%', borderRadius: isMobile ? '12px' : '16px', overflow: 'hidden', cursor: 'pointer', boxShadow: hovered ? '0 8px 24px rgba(0,0,0,0.15)' : '0 2px 8px rgba(0,0,0,0.08)', transition: 'all 0.3s ease', transform: hovered ? 'translateY(-4px)' : 'translateY(0)', backgroundColor: '#FFFFFF', marginBottom: isMobile ? '0' : '24px' }}
     >
-      <div style={{ position: 'relative', width: '100%', height: '200px' }}>
+      <div style={{ position: 'relative', width: '100%', height: isMobile ? '140px' : '200px' }}>
         <img
           src={event.image_url || 'https://picsum.photos/seed/' + event.id + '/296/200'}
           alt={event.title}
           style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
         />
 
-        {/* Fee badge */}
-        <div style={{ position: 'absolute', top: '12px', right: '12px', padding: '3px 10px', borderRadius: '9999px', backgroundColor: event.is_free ? '#F0FDF4' : '#FFF6DE', border: '1px solid ' + (event.is_free ? '#4CAF50' : '#FED86E') }}>
-          <span style={{ fontSize: '11px', fontWeight: '600', color: event.is_free ? '#4CAF50' : '#B88700' }}>
+        <div style={{ position: 'absolute', top: isMobile ? '8px' : '12px', right: isMobile ? '8px' : '12px', padding: isMobile ? '2px 8px' : '3px 10px', borderRadius: '9999px', backgroundColor: event.is_free ? '#F0FDF4' : '#FFF6DE', border: '1px solid ' + (event.is_free ? '#4CAF50' : '#FED86E') }}>
+          <span style={{ fontSize: isMobile ? '9px' : '11px', fontWeight: '600', color: event.is_free ? '#4CAF50' : '#B88700' }}>
             {event.is_free ? 'Free' : event.ticket_price || 'Paid'}
           </span>
         </div>
 
-        {/* Days / Everyday badge */}
         {showBadge && (
-          <div style={{ position: 'absolute', top: '12px', left: '12px', padding: '3px 10px', borderRadius: '9999px', backgroundColor: badgeBg, border: '1px solid ' + badgeBorder }}>
-            <span style={{ fontSize: '11px', fontWeight: '500', color: badgeColor }}>
+          <div style={{ position: 'absolute', top: isMobile ? '8px' : '12px', left: isMobile ? '8px' : '12px', padding: isMobile ? '2px 8px' : '3px 10px', borderRadius: '9999px', backgroundColor: badgeBg, border: '1px solid ' + badgeBorder }}>
+            <span style={{ fontSize: isMobile ? '9px' : '11px', fontWeight: '500', color: badgeColor }}>
               {badgeText}
             </span>
           </div>
         )}
 
-        {/* Like button */}
-        <button
-          onClick={(e) => { e.stopPropagation(); setLiked(!liked) }}
-          style={{ position: 'absolute', bottom: '12px', right: '12px', width: '32px', height: '32px', borderRadius: '9999px', backgroundColor: 'rgba(255,255,255,0.9)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: hovered ? 1 : 0, transition: 'opacity 0.3s ease' }}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill={liked ? '#D90870' : 'none'} stroke="#D90870" strokeWidth="2">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-          </svg>
-        </button>
+        {!isMobile && (
+          <button
+            onClick={(e) => { e.stopPropagation(); setLiked(!liked) }}
+            style={{ position: 'absolute', bottom: '12px', right: '12px', width: '32px', height: '32px', borderRadius: '9999px', backgroundColor: 'rgba(255,255,255,0.9)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: hovered ? 1 : 0, transition: 'opacity 0.3s ease' }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill={liked ? '#D90870' : 'none'} stroke="#D90870" strokeWidth="2">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+          </button>
+        )}
+        {isMobile && (
+          <button
+            onClick={(e) => { e.stopPropagation(); setLiked(!liked) }}
+            style={{ position: 'absolute', bottom: '8px', right: '8px', width: '26px', height: '26px', borderRadius: '9999px', backgroundColor: 'rgba(255,255,255,0.9)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill={liked ? '#D90870' : 'none'} stroke="#D90870" strokeWidth="2">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+          </button>
+        )}
       </div>
 
-      <div style={{ padding: '12px', backgroundColor: hovered ? '#F9F9F9' : '#FFFFFF', transition: 'background-color 0.3s ease' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div style={{ padding: isMobile ? '8px' : '12px', backgroundColor: hovered ? '#F9F9F9' : '#FFFFFF', transition: 'background-color 0.3s ease' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '6px' : '8px' }}>
           {event.organizer_avatar ? (
-            <img src={event.organizer_avatar} alt="organizer" style={{ width: '28px', height: '28px', borderRadius: '9999px', objectFit: 'cover', flexShrink: 0 }} />
+            <img src={event.organizer_avatar} alt="organizer" style={{ width: isMobile ? '22px' : '28px', height: isMobile ? '22px' : '28px', borderRadius: '9999px', objectFit: 'cover', flexShrink: 0 }} />
           ) : (
-            <div style={{ width: '28px', height: '28px', borderRadius: '9999px', backgroundColor: '#0097FF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFFFFF', fontSize: '11px', fontWeight: '700', flexShrink: 0 }}>
+            <div style={{ width: isMobile ? '22px' : '28px', height: isMobile ? '22px' : '28px', borderRadius: '9999px', backgroundColor: '#0097FF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFFFFF', fontSize: '11px', fontWeight: '700', flexShrink: 0 }}>
               {(event.organizer_name || 'E').charAt(0).toUpperCase()}
             </div>
           )}
           <div style={{ overflow: 'hidden' }}>
-            <p style={{ fontSize: '13px', fontWeight: '600', color: '#141415', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{event.title}</p>
-            <p style={{ fontSize: '11px', color: '#7E7E82', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <p style={{ fontSize: isMobile ? '12px' : '13px', fontWeight: '600', color: '#141415', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{event.title}</p>
+            <p style={{ fontSize: isMobile ? '10px' : '11px', color: '#7E7E82', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {event.location || event.category}
               {isEveryday ? ' • Everyday' : event.event_date ? ' • ' + new Date(event.event_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}
             </p>
@@ -135,7 +146,7 @@ function EventCard({ event }) {
   )
 }
 
-function CategoryTabs({ category, onCategoryChange }) {
+function CategoryTabs({ category, onCategoryChange, isMobile }) {
   const [showFlyout, setShowFlyout] = useState(false)
   const flyoutRef = useRef(null)
   const navigate = useNavigate()
@@ -150,7 +161,7 @@ function CategoryTabs({ category, onCategoryChange }) {
 
   return (
     <div style={{ backgroundColor: '#FFFFFF', width: '100%' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '32px', position: 'relative', borderBottom: '1px solid #E8E8EA' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '20px' : '32px', position: 'relative', borderBottom: '1px solid #E8E8EA', overflowX: isMobile ? 'auto' : 'visible', WebkitOverflowScrolling: 'touch' }}>
         {['Events', 'Blog', 'Memes'].map((tab) => {
           const isActive = tab === 'Events'
           return (
@@ -160,8 +171,8 @@ function CategoryTabs({ category, onCategoryChange }) {
                 else if (tab === 'Memes') navigate('/memes')
                 else setShowFlyout(!showFlyout)
               }}
-              style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '16px 0', cursor: 'pointer', borderBottom: isActive ? '2px solid #141415' : '2px solid transparent', marginBottom: '-1px' }}>
-              <span style={{ fontSize: '14px', fontWeight: '500', color: isActive ? '#141415' : '#59595C' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: isMobile ? '14px 0' : '16px 0', cursor: 'pointer', borderBottom: isActive ? '2px solid #141415' : '2px solid transparent', marginBottom: '-1px', flexShrink: 0 }}>
+              <span style={{ fontSize: isMobile ? '13px' : '14px', fontWeight: '500', color: isActive ? '#141415' : '#59595C' }}>
                 {tab === 'Events' ? category : tab}
               </span>
               {isActive && (
@@ -175,15 +186,24 @@ function CategoryTabs({ category, onCategoryChange }) {
         })}
 
         {showFlyout && (
-          <div ref={flyoutRef} style={{ position: 'absolute', top: '56px', left: 0, width: '200px', backgroundColor: '#FFFFFF', borderRadius: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.12)', padding: '16px 8px', zIndex: 100 }}>
+          <div ref={flyoutRef} style={{
+            position: isMobile ? 'fixed' : 'absolute',
+            top: isMobile ? undefined : '56px',
+            bottom: isMobile ? 0 : undefined,
+            left: isMobile ? 0 : 0,
+            right: isMobile ? 0 : undefined,
+            width: isMobile ? '100%' : '200px',
+            borderRadius: isMobile ? '20px 20px 0 0' : '12px',
+            backgroundColor: '#FFFFFF', boxShadow: '0 8px 32px rgba(0,0,0,0.12)', padding: '16px 8px', zIndex: 200,
+          }}>
             <p style={{ fontSize: '14px', fontWeight: '600', color: '#141415', padding: '0 8px', marginBottom: '12px' }}>Select from categories</p>
-            <div style={{ maxHeight: '252px', overflowY: 'auto', scrollbarWidth: 'thin' }}>
+            <div style={{ maxHeight: isMobile ? '50vh' : '252px', overflowY: 'auto', scrollbarWidth: 'thin' }}>
               {eventCategories.map((cat) => {
                 const isSelected = cat.label === category
                 return (
                   <div key={cat.label}
                     onClick={() => { onCategoryChange(cat.label); setShowFlyout(false) }}
-                    style={{ width: '100%', height: '36px', display: 'flex', alignItems: 'center', gap: '8px', padding: '0 8px', borderRadius: '8px', cursor: 'pointer', backgroundColor: isSelected ? '#F3F3F4' : 'transparent', marginBottom: '4px' }}
+                    style={{ width: '100%', height: '40px', display: 'flex', alignItems: 'center', gap: '8px', padding: '0 8px', borderRadius: '8px', cursor: 'pointer', backgroundColor: isSelected ? '#F3F3F4' : 'transparent', marginBottom: '4px' }}
                     onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = '#F9F9F9' }}
                     onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent' }}>
                     <span style={{ fontSize: '16px' }}>{cat.icon}</span>
@@ -203,6 +223,7 @@ function CategoryEvents() {
   const location = useLocation()
   const searchParams = new URLSearchParams(location.search)
   const initialCategory = searchParams.get('type') || 'All Events'
+  const isMobile = useIsMobile()
 
   const [category, setCategory] = useState(initialCategory)
   const [events, setEvents] = useState([])
@@ -267,32 +288,38 @@ function CategoryEvents() {
     return () => observer.disconnect()
   }, [loadMore])
 
-  const columns = [[], [], [], []]
-  events.forEach((event, i) => columns[i % 4].push(event))
+  const columns = isMobile ? [[], []] : [[], [], [], []]
+  events.forEach((event, i) => columns[i % columns.length].push(event))
 
   return (
     <div style={{ backgroundColor: '#FFFFFF' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto' }}><Navbar /></div>
 
       <section style={{ backgroundColor: '#F0F4FF', width: '100%' }}>
-        <div style={{ maxWidth: '1440px', margin: '0 auto', height: '328px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 100px' }}>
+        <div style={{
+          maxWidth: '1440px', margin: '0 auto',
+          height: isMobile ? 'auto' : '328px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: isMobile ? '32px 20px' : '0 100px',
+          gap: isMobile ? '16px' : 0,
+        }}>
           <div style={{ flex: 1 }}>
-            <h2 style={{ fontSize: '40px', lineHeight: '48px', fontWeight: '700', color: '#141415', marginBottom: '12px' }}>{category}</h2>
-            <p style={{ fontSize: '24px', lineHeight: '32px', fontWeight: '400', color: '#7E7E82', maxWidth: '600px' }}>
+            <h2 style={{ fontSize: isMobile ? '28px' : '40px', lineHeight: isMobile ? '34px' : '48px', fontWeight: '700', color: '#141415', marginBottom: isMobile ? '8px' : '12px' }}>{category}</h2>
+            <p style={{ fontSize: isMobile ? '14px' : '24px', lineHeight: isMobile ? '20px' : '32px', fontWeight: '400', color: '#7E7E82', maxWidth: '600px' }}>
               Explore exciting events happening around you and never miss out on the fun.
             </p>
           </div>
-          <AnimatedBannerCards />
+          <AnimatedBannerCards isMobile={isMobile} />
         </div>
       </section>
 
       <section style={{ width: '100%', backgroundColor: '#FFFFFF' }}>
-        <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 100px' }}>
-          <CategoryTabs category={category} onCategoryChange={setCategory} />
+        <div style={{ maxWidth: '1440px', margin: '0 auto', padding: isMobile ? '0 20px' : '0 100px' }}>
+          <CategoryTabs category={category} onCategoryChange={setCategory} isMobile={isMobile} />
         </div>
       </section>
 
-      <section style={{ maxWidth: '1440px', margin: '0 auto', padding: '48px 100px' }}>
+      <section style={{ maxWidth: '1440px', margin: '0 auto', padding: isMobile ? '24px 20px' : '48px 100px' }}>
         {loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', padding: '80px 0' }}>
             <div style={{ display: 'flex', gap: '8px' }}>
@@ -309,15 +336,18 @@ function CategoryEvents() {
           </div>
         ) : (
           <>
-            <p style={{ color: '#7E7E82', fontSize: '14px', marginBottom: '32px' }}>
+            <p style={{ color: '#7E7E82', fontSize: isMobile ? '13px' : '14px', marginBottom: isMobile ? '20px' : '32px' }}>
               Showing <strong style={{ color: '#141415' }}>{events.length}</strong> event{events.length !== 1 ? 's' : ''} in <strong style={{ color: '#141415' }}>{category}</strong>
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', alignItems: 'start' }}>
-              {columns.map((col, colIndex) => (
-                <div key={colIndex}>
-                  {col.map((event) => <EventCard key={event.id} event={event} />)}
-                </div>
-              ))}
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: isMobile ? '14px' : '24px', alignItems: 'start' }}>
+              {isMobile
+                ? events.map((event) => <EventCard key={event.id} event={event} isMobile={isMobile} />)
+                : columns.map((col, colIndex) => (
+                    <div key={colIndex}>
+                      {col.map((event) => <EventCard key={event.id} event={event} isMobile={isMobile} />)}
+                    </div>
+                  ))
+              }
             </div>
           </>
         )}
