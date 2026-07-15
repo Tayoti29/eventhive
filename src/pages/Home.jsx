@@ -81,45 +81,39 @@ function Home() {
       {/* ── HERO SECTION ── */}
       <section
         className="relative w-full flex items-center justify-center bg-blue-900"
-        style={{ height: isMobile ? 'auto' : '604px', minHeight: isMobile ? '520px' : undefined, maxWidth: '1440px', margin: '0 auto', padding: isMobile ? '48px 0' : 0 }}
+        style={{ height: isMobile ? 'auto' : '604px', minHeight: isMobile ? '480px' : undefined, maxWidth: '1440px', margin: '0 auto', padding: isMobile ? '48px 0' : 0 }}
       >
         <img src={heroImg} alt="Hero" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 bg-blue-900" style={{ opacity: 0.6 }} />
         <div
           className="relative z-10 flex flex-col items-center text-center"
-          style={{ paddingLeft: isMobile ? '20px' : '100px', paddingRight: isMobile ? '20px' : '100px' }}
+          style={{ paddingLeft: isMobile ? '20px' : '100px', paddingRight: isMobile ? '20px' : '100px', width: '100%', boxSizing: 'border-box' }}
         >
-          <h1 className="text-white font-bold" style={{ fontSize: isMobile ? '32px' : '60px', lineHeight: isMobile ? '40px' : '72px' }}>
+          <h1 className="text-white font-bold" style={{ fontSize: isMobile ? '30px' : '60px', lineHeight: isMobile ? '38px' : '72px' }}>
             <AnimatedWord /> {isMobile ? 'unforgettable experiences near you.' : 'Unforgettable Experiences Near You'}
           </h1>
-          {!isMobile && (
-            <p className="text-white text-h6" style={{ marginTop: '36px' }}>
-              Explore exciting events happening around you and never miss out on the fun.
-            </p>
-          )}
-          {isMobile && (
-            <p style={{ color: '#FFFFFF', fontSize: '14px', marginTop: '12px', opacity: 0.9 }}>
-              Explore exciting events happening around you and never miss out on the fun.
-            </p>
-          )}
+          <p style={{ color: '#FFFFFF', fontSize: isMobile ? '14px' : '20px', lineHeight: isMobile ? '20px' : '30px', marginTop: isMobile ? '12px' : '36px', opacity: isMobile ? 0.9 : 1 }}>
+            Explore exciting events happening around you and never miss out on the fun.
+          </p>
 
+          {/* Search bar — compact single row on mobile, matches the mockup */}
           <div
-            className="flex bg-white rounded-lg overflow-hidden shadow-card"
+            className="flex items-center bg-white rounded-lg overflow-hidden shadow-card"
             style={
               isMobile
-                ? { width: '100%', maxWidth: '340px', flexDirection: 'column', marginTop: '28px' }
-                : { width: '706px', height: '72px', marginTop: '40px', alignItems: 'center' }
+                ? { width: '100%', maxWidth: '400px', height: '46px', marginTop: '24px' }
+                : { width: '706px', height: '72px', marginTop: '40px' }
             }
           >
             <div
-              className="flex items-center gap-2 px-5 border-grey-200"
+              className="flex items-center border-grey-200"
               style={
                 isMobile
-                  ? { width: '100%', height: '52px', borderBottom: '1px solid #E8E8EA', boxSizing: 'border-box' }
-                  : { minWidth: '200px', height: '100%', borderRight: '1px solid #E8E8EA' }
+                  ? { gap: '4px', padding: '0 10px', minWidth: '100px', height: '100%', borderRight: '1px solid #E8E8EA', flexShrink: 0 }
+                  : { gap: '8px', padding: '0 20px', minWidth: '200px', height: '100%', borderRight: '1px solid #E8E8EA' }
               }
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#414143" strokeWidth="2">
+              <svg width={isMobile ? '14' : '18'} height={isMobile ? '14' : '18'} viewBox="0 0 24 24" fill="none" stroke="#414143" strokeWidth="2" style={{ flexShrink: 0 }}>
                 <line x1="4" y1="6" x2="20" y2="6"/>
                 <line x1="8" y1="12" x2="20" y2="12"/>
                 <line x1="12" y1="18" x2="20" y2="18"/>
@@ -127,9 +121,10 @@ function Home() {
               <select
                 value={eventType}
                 onChange={(e) => setEventType(e.target.value)}
-                className="text-subtitle1 text-grey-700 bg-transparent outline-none w-full cursor-pointer"
+                className="text-grey-700 bg-transparent outline-none cursor-pointer"
+                style={{ fontSize: isMobile ? '11px' : '15px', width: '100%' }}
               >
-                <option value="">Event Type</option>
+                <option value="">{isMobile ? 'Type' : 'Event Type'}</option>
                 <option value="music">Music</option>
                 <option value="tech">Tech</option>
                 <option value="sports">Sports</option>
@@ -141,27 +136,27 @@ function Home() {
             </div>
             <input
               type="text"
-              placeholder="Search for events"
+              placeholder={isMobile ? 'Search events' : 'Search for events'}
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              className="flex-1 px-5 text-p1 text-grey-700 placeholder-grey-400 outline-none"
-              style={isMobile ? { width: '100%', height: '52px', boxSizing: 'border-box', borderBottom: '1px solid #E8E8EA' } : { height: '100%' }}
+              className="flex-1 text-grey-700 placeholder-grey-400 outline-none"
+              style={{ height: '100%', padding: isMobile ? '0 10px' : '0 20px', fontSize: isMobile ? '12px' : '16px', minWidth: 0 }}
             />
             <button
               onClick={handleSearch}
-              className="btn-primary flex items-center justify-center gap-2"
+              className="btn-primary flex items-center justify-center gap-2 flex-shrink-0"
               style={
                 isMobile
-                  ? { width: '100%', height: '52px', borderRadius: 0 }
+                  ? { height: '100%', padding: '0 14px', borderRadius: 0 }
                   : { height: '100%', padding: '0 32px', borderRadius: '0 8px 8px 0' }
               }
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
+              <svg width={isMobile ? '14' : '18'} height={isMobile ? '14' : '18'} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
                 <circle cx="11" cy="11" r="8"/>
                 <path d="m21 21-4.35-4.35"/>
               </svg>
-              Search
+              <span style={{ fontSize: isMobile ? '11px' : undefined }}>Search</span>
             </button>
           </div>
         </div>

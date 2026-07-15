@@ -45,10 +45,8 @@ function Navbar() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Close the mobile flyover automatically if the screen grows past mobile size
   useEffect(() => { if (!isMobile) setShowMobileMenu(false) }, [isMobile])
 
-  // Lock body scroll while the flyover is open
   useEffect(() => {
     document.body.style.overflow = showMobileMenu ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
@@ -85,7 +83,7 @@ function Navbar() {
   ]
 
   const profileLinks = [
-    { label: '👤 My Profile', to: '/profile' },
+    { label: '👤 Profile', to: '/profile' },
     { label: '📤 My Uploads', to: '/my-uploads' },
     { label: '🔖 My Save Box', to: '/saved' },
   ]
@@ -97,6 +95,8 @@ function Navbar() {
       <nav style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: isMobile ? '16px 20px' : '20px 100px', backgroundColor: '#FFFFFF',
+        position: 'sticky', top: 0, zIndex: 500,
+        boxShadow: '0 1px 0 #F0F0F1',
       }}>
         {/* Logo */}
         <Link to="/" style={{ display: 'flex', alignItems: 'center' }}>
@@ -203,13 +203,12 @@ function Navbar() {
         )}
       </nav>
 
-      {/* Mobile flyover menu */}
+      {/* Mobile flyover menu — no logout here, that lives on the Profile page */}
       {isMobile && showMobileMenu && (
         <div style={{
           position: 'fixed', inset: 0, zIndex: 2000, backgroundColor: '#FFFFFF',
           display: 'flex', flexDirection: 'column', animation: 'slideIn 0.25s ease',
         }}>
-          {/* Header */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid #E8E8EA' }}>
             <img src={logo} alt="EventHive" style={{ height: '30px' }} />
             <button onClick={() => setShowMobileMenu(false)}
@@ -220,10 +219,8 @@ function Navbar() {
             </button>
           </div>
 
-          {/* Scrollable content */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '24px 20px' }}>
 
-            {/* User row — if logged in */}
             {user && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 4px 20px', borderBottom: '1px solid #E8E8EA', marginBottom: '20px' }}>
                 <UserAvatar avatarUrl={avatarUrl} name={displayName} size={44} />
@@ -255,7 +252,7 @@ function Navbar() {
               ))}
             </div>
 
-            {/* Profile links — if logged in */}
+            {/* Profile links — only if logged in. No logout button anywhere here. */}
             {user && (
               <>
                 <p style={{ fontSize: '12px', fontWeight: '600', color: '#A5A5AA', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px' }}>Account</p>
@@ -271,20 +268,15 @@ function Navbar() {
             )}
           </div>
 
-          {/* Footer — pinned auth button */}
-          <div style={{ padding: '16px 20px 28px', borderTop: '1px solid #E8E8EA' }}>
-            {!user ? (
+          {/* Footer — Sign In only when logged out. No logout button here anymore. */}
+          {!user && (
+            <div style={{ padding: '16px 20px 28px', borderTop: '1px solid #E8E8EA' }}>
               <button onClick={() => { setShowMobileMenu(false); navigate('/login', { state: { backgroundLocation: location } }) }}
                 style={{ width: '100%', height: '50px', borderRadius: '10px', border: 'none', backgroundColor: '#0097FF', color: '#FFFFFF', fontSize: '16px', fontWeight: '600', cursor: 'pointer' }}>
                 Sign In
               </button>
-            ) : (
-              <button onClick={handleLogout}
-                style={{ width: '100%', height: '50px', borderRadius: '10px', border: '1px solid #E8E8EA', backgroundColor: '#FFFFFF', color: '#AE2012', fontSize: '16px', fontWeight: '600', cursor: 'pointer' }}>
-                🚪 Log Out
-              </button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       )}
 
