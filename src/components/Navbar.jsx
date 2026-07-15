@@ -275,6 +275,10 @@ function Navbar() {
                 style={{ width: '100%', height: '50px', borderRadius: '10px', border: 'none', backgroundColor: '#0097FF', color: '#FFFFFF', fontSize: '16px', fontWeight: '600', cursor: 'pointer' }}>
                 Sign In
               </button>
+               <button onClick={() => { setShowMobileMenu(false); navigate('/register', { state: { backgroundLocation: location } }) }}
+               style={{ width: '100%', height: '50px', borderRadius: '10px', border: '1px solid #E8E8EA', backgroundColor: '#FFFFFF', color: '#141415', fontSize: '16px', fontWeight: '600', cursor: 'pointer' }}>
+                Sign Up
+               </button>
             </div>
           )}
         </div>

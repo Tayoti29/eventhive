@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 const categories = [
   { label: 'Religion',    image: 'https://picsum.photos/seed/religion/296/296' },
@@ -20,25 +21,14 @@ function ArrowButton({ direction, onClick }) {
     <button
       onClick={onClick}
       style={{
-        width: '36px',
-        height: '36px',
-        borderRadius: '9999px',
-        backgroundColor: '#F9F9F9',
-        border: '1px solid #F3F3F4',
-        padding: '5px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0,
-        cursor: 'pointer',
+        width: '36px', height: '36px', borderRadius: '9999px', backgroundColor: '#F9F9F9',
+        border: '1px solid #F3F3F4', padding: '5px', display: 'flex', alignItems: 'center',
+        justifyContent: 'center', flexShrink: 0, cursor: 'pointer',
       }}
     >
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
         stroke="#7E7E82" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        {direction === 'left'
-          ? <polyline points="15 18 9 12 15 6"/>
-          : <polyline points="9 18 15 12 9 6"/>
-        }
+        {direction === 'left' ? <polyline points="15 18 9 12 15 6"/> : <polyline points="9 18 15 12 9 6"/>}
       </svg>
     </button>
   )
@@ -46,27 +36,24 @@ function ArrowButton({ direction, onClick }) {
 
 function CategoryCarousel({ onSelect }) {
   const scrollRef = useRef(null)
+  const isMobile = useIsMobile()
+  const cardSize = isMobile ? 140 : 296
 
   const scroll = (direction) => {
     if (scrollRef.current) {
-      scrollRef.current.scrollBy({
-        left: direction === 'left' ? -320 : 320,
-        behavior: 'smooth',
-      })
+      scrollRef.current.scrollBy({ left: direction === 'left' ? -320 : 320, behavior: 'smooth' })
     }
   }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-      <ArrowButton direction="left" onClick={() => scroll('left')} />
+    <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '16px' }}>
+      {!isMobile && <ArrowButton direction="left" onClick={() => scroll('left')} />}
       <div
         ref={scrollRef}
         style={{
-          display: 'flex',
-          gap: '16px',
-          overflowX: 'auto',
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
+          display: 'flex', gap: isMobile ? '12px' : '16px', overflowX: 'auto',
+          scrollbarWidth: 'none', msOverflowStyle: 'none',
+          WebkitOverflowScrolling: 'touch', paddingBottom: isMobile ? '4px' : 0,
         }}
       >
         {categories.map((cat) => (
@@ -74,53 +61,22 @@ function CategoryCarousel({ onSelect }) {
             key={cat.label}
             onClick={() => onSelect && onSelect(cat.label)}
             style={{
-              position: 'relative',
-              flexShrink: 0,
-              width: '296px',
-              height: '296px',
-              borderRadius: '16px',
-              overflow: 'hidden',
-              cursor: 'pointer',
+              position: 'relative', flexShrink: 0,
+              width: cardSize + 'px', height: cardSize + 'px',
+              borderRadius: isMobile ? '10px' : '16px', overflow: 'hidden', cursor: 'pointer',
             }}
           >
-            <img
-              src={cat.image}
-              alt={cat.label}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-            <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                backgroundColor: '#000C14',
-                opacity: 0.4,
-              }}
-            />
-            <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: '32px',
-                  lineHeight: '39px',
-                  fontWeight: '700',
-                  color: '#FFFFFF',
-                  textAlign: 'center',
-                }}
-              >
+            <img src={cat.image} alt={cat.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <div style={{ position: 'absolute', inset: 0, backgroundColor: '#000C14', opacity: 0.4 }} />
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: isMobile ? '16px' : '32px', lineHeight: isMobile ? '20px' : '39px', fontWeight: '700', color: '#FFFFFF', textAlign: 'center', padding: '0 8px' }}>
                 {cat.label}
               </span>
             </div>
           </div>
         ))}
       </div>
-      <ArrowButton direction="right" onClick={() => scroll('right')} />
+      {!isMobile && <ArrowButton direction="right" onClick={() => scroll('right')} />}
     </div>
   )
 }
