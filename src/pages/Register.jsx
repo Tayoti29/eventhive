@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import SuccessBanner from '../components/SuccessBanner'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 const allCountries = [
   'Afghanistan','Albania','Algeria','Andorra','Angola','Antigua and Barbuda','Argentina','Armenia','Australia','Austria',
@@ -26,22 +27,11 @@ const allCountries = [
 ]
 
 const statesByCountry = {
-  Nigeria: [
-    'Abia','Adamawa','Akwa Ibom','Anambra','Bauchi','Bayelsa','Benue','Borno','Cross River','Delta',
-    'Ebonyi','Edo','Ekiti','Enugu','FCT Abuja','Gombe','Imo','Jigawa','Kaduna','Kano',
-    'Katsina','Kebbi','Kogi','Kwara','Lagos','Nasarawa','Niger','Ogun','Ondo','Osun',
-    'Oyo','Plateau','Rivers','Sokoto','Taraba','Yobe','Zamfara',
-  ],
+  Nigeria: ['Abia','Adamawa','Akwa Ibom','Anambra','Bauchi','Bayelsa','Benue','Borno','Cross River','Delta','Ebonyi','Edo','Ekiti','Enugu','FCT Abuja','Gombe','Imo','Jigawa','Kaduna','Kano','Katsina','Kebbi','Kogi','Kwara','Lagos','Nasarawa','Niger','Ogun','Ondo','Osun','Oyo','Plateau','Rivers','Sokoto','Taraba','Yobe','Zamfara'],
   Ghana: ['Ahafo','Ashanti','Bono','Bono East','Central','Eastern','Greater Accra','North East','Northern','Oti','Savannah','Upper East','Upper West','Volta','Western','Western North'],
   Kenya: ['Baringo','Bomet','Bungoma','Busia','Elgeyo-Marakwet','Embu','Garissa','Homa Bay','Isiolo','Kajiado','Kakamega','Kericho','Kiambu','Kilifi','Kirinyaga','Kisii','Kisumu','Kitui','Kwale','Laikipia','Lamu','Machakos','Makueni','Mandera','Marsabit','Meru','Migori','Mombasa','Murang\'a','Nairobi','Nakuru','Nandi','Narok','Nyamira','Nyandarua','Nyeri','Samburu','Siaya','Taita-Taveta','Tana River','Tharaka-Nithi','Trans Nzoia','Turkana','Uasin Gishu','Vihiga','Wajir','West Pokot'],
   'South Africa': ['Eastern Cape','Free State','Gauteng','KwaZulu-Natal','Limpopo','Mpumalanga','Northern Cape','North West','Western Cape'],
-  'United States': [
-    'Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut','Delaware','Florida','Georgia',
-    'Hawaii','Idaho','Illinois','Indiana','Iowa','Kansas','Kentucky','Louisiana','Maine','Maryland',
-    'Massachusetts','Michigan','Minnesota','Mississippi','Missouri','Montana','Nebraska','Nevada','New Hampshire','New Jersey',
-    'New Mexico','New York','North Carolina','North Dakota','Ohio','Oklahoma','Oregon','Pennsylvania','Rhode Island','South Carolina',
-    'South Dakota','Tennessee','Texas','Utah','Vermont','Virginia','Washington','West Virginia','Wisconsin','Wyoming',
-  ],
+  'United States': ['Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut','Delaware','Florida','Georgia','Hawaii','Idaho','Illinois','Indiana','Iowa','Kansas','Kentucky','Louisiana','Maine','Maryland','Massachusetts','Michigan','Minnesota','Mississippi','Missouri','Montana','Nebraska','Nevada','New Hampshire','New Jersey','New Mexico','New York','North Carolina','North Dakota','Ohio','Oklahoma','Oregon','Pennsylvania','Rhode Island','South Carolina','South Dakota','Tennessee','Texas','Utah','Vermont','Virginia','Washington','West Virginia','Wisconsin','Wyoming'],
   'United Kingdom': ['England','Northern Ireland','Scotland','Wales'],
   Canada: ['Alberta','British Columbia','Manitoba','New Brunswick','Newfoundland and Labrador','Northwest Territories','Nova Scotia','Nunavut','Ontario','Prince Edward Island','Quebec','Saskatchewan','Yukon'],
   Australia: ['Australian Capital Territory','New South Wales','Northern Territory','Queensland','South Australia','Tasmania','Victoria','Western Australia'],
@@ -68,6 +58,7 @@ function Register() {
   const navigate = useNavigate()
   const location = useLocation()
   const { setMockUser } = useAuth()
+  const isMobile = useIsMobile()
   const backgroundLocation = location.state?.backgroundLocation
 
   const [phase, setPhase] = useState('choose')
@@ -80,19 +71,12 @@ function Register() {
   const [googleHovered, setGoogleHovered] = useState(false)
   const [emailHovered, setEmailHovered] = useState(false)
 
-  const [form, setForm] = useState({
-    firstName: '', lastName: '', username: '',
-    country: '', state: '', city: '',
-    email: '', password: '', confirmPassword: '',
-  })
+  const [form, setForm] = useState({ firstName: '', lastName: '', username: '', country: '', state: '', city: '', email: '', password: '', confirmPassword: '' })
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
 
   const handleClose = () => {
-    if (backgroundLocation) {
-      navigate(backgroundLocation.pathname + (backgroundLocation.search || ''))
-    } else {
-      navigate('/')
-    }
+    if (backgroundLocation) navigate(backgroundLocation.pathname + (backgroundLocation.search || ''))
+    else navigate('/')
   }
 
   const set = (field, value) => {
@@ -124,38 +108,16 @@ function Register() {
     try {
       const { supabase } = await import('../supabaseClient')
       const { error } = await supabase.auth.signUp({
-        email: form.email,
-        password: form.password,
-        options: {
-          data: {
-            full_name: form.firstName + ' ' + form.lastName,
-            first_name: form.firstName,
-            last_name: form.lastName,
-            username: form.username,
-            country: form.country,
-            state: form.state,
-            city: form.city,
-          },
-        },
+        email: form.email, password: form.password,
+        options: { data: { full_name: form.firstName + ' ' + form.lastName, first_name: form.firstName, last_name: form.lastName, username: form.username, country: form.country, state: form.state, city: form.city } },
       })
-      if (error) {
-        console.log('Supabase register failed, using mock:', error.message)
-      }
-    } catch (err) {
-      console.log('Using mock registration')
-    }
+      if (error) console.log('Supabase register failed, using mock:', error.message)
+    } catch (err) { console.log('Using mock registration') }
 
-    // Save registration data to sessionStorage so profile can read it
-    const registrationData = {
-      firstName: form.firstName,
-      lastName: form.lastName,
-      username: form.username,
-      email: form.email,
-      country: form.country,
-      state: form.state,
-      city: form.city,
-    }
-    sessionStorage.setItem('registrationData', JSON.stringify(registrationData))
+    sessionStorage.setItem('registrationData', JSON.stringify({
+      firstName: form.firstName, lastName: form.lastName, username: form.username,
+      email: form.email, country: form.country, state: form.state, city: form.city,
+    }))
 
     setLoading(false)
     setPhase('otp')
@@ -166,43 +128,25 @@ function Register() {
     const newOtp = [...otp]
     newOtp[index] = value
     setOtp(newOtp)
-    if (value && index < 5) {
-      document.getElementById('otp-' + (index + 1))?.focus()
-    }
+    if (value && index < 5) document.getElementById('otp-' + (index + 1))?.focus()
   }
 
   const handleOtpKeyDown = (index, e) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      document.getElementById('otp-' + (index - 1))?.focus()
-    }
+    if (e.key === 'Backspace' && !otp[index] && index > 0) document.getElementById('otp-' + (index - 1))?.focus()
   }
 
   const handleVerifyOtp = () => {
     const code = otp.join('')
     if (code.length < 6) return
-    // Accept any 6-digit code in mock mode
     setMockUser(form.email)
-
-    // Also update mockUser with full registration data
     const mockUser = {
-      id: (() => {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-          const r = Math.random() * 16 | 0
-          const v = c === 'x' ? r : (r & 0x3 | 0x8)
-          return v.toString(16)
-        })
-      })(),
+      id: 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0
+        const v = c === 'x' ? r : (r & 0x3 | 0x8)
+        return v.toString(16)
+      }),
       email: form.email,
-      user_metadata: {
-        full_name: form.firstName + ' ' + form.lastName,
-        first_name: form.firstName,
-        last_name: form.lastName,
-        username: form.username,
-        country: form.country,
-        state: form.state,
-        city: form.city,
-        avatar_url: null,
-      },
+      user_metadata: { full_name: form.firstName + ' ' + form.lastName, first_name: form.firstName, last_name: form.lastName, username: form.username, country: form.country, state: form.state, city: form.city, avatar_url: null },
     }
     sessionStorage.setItem('mockUser', JSON.stringify(mockUser))
     setShowSuccess(true)
@@ -212,21 +156,11 @@ function Register() {
     try {
       const { supabase } = await import('../supabaseClient')
       await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } })
-    } catch (err) {
-      console.log('Google OAuth not available')
-    }
+    } catch (err) { console.log('Google OAuth not available') }
   }
 
-  const inputStyle = {
-    width: '100%', height: '52px', borderRadius: '12px',
-    border: '1px solid #E8E8EA', padding: '0 16px',
-    fontSize: '16px', color: '#414143', outline: 'none',
-    boxSizing: 'border-box', fontFamily: 'inherit',
-  }
-  const labelStyle = {
-    fontSize: '16px', fontWeight: '600', color: '#141415',
-    display: 'block', marginBottom: '8px',
-  }
+  const inputStyle = { width: '100%', height: isMobile ? '48px' : '52px', borderRadius: '12px', border: '1px solid #E8E8EA', padding: '0 16px', fontSize: isMobile ? '15px' : '16px', color: '#414143', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }
+  const labelStyle = { fontSize: isMobile ? '14px' : '16px', fontWeight: '600', color: '#141415', display: 'block', marginBottom: '8px' }
   const errorStyle = { fontSize: '12px', color: '#AE2012', marginTop: '4px', display: 'block' }
 
   const pwRules = [
@@ -236,31 +170,25 @@ function Register() {
     { label: '1 digit', ok: /[0-9]/.test(form.password) },
   ]
 
+  const choosePhaseW = isMobile ? '100%' : '449px'
+  const emailPhaseW = isMobile ? '100%' : '560px'
+
   return (
     <>
-      {showSuccess && (
-        <SuccessBanner message="Account created successfully! Welcome to EventHive 🎉" onDone={handleClose} />
-      )}
+      {showSuccess && <SuccessBanner message="Account created successfully! Welcome to EventHive 🎉" onDone={handleClose} />}
 
-      <div
-        style={{ position: 'fixed', inset: 0, zIndex: 1000, backgroundColor: 'rgba(0,12,20,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-        onClick={(e) => { if (e.target === e.currentTarget) handleClose() }}
-      >
+      <div style={{ position: 'fixed', inset: 0, zIndex: 1000, backgroundColor: 'rgba(0,12,20,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '24px' : 0 }}
+        onClick={(e) => { if (e.target === e.currentTarget) handleClose() }}>
 
-        {/* ── Phase 1: Choose ── */}
         {phase === 'choose' && (
-          <div style={{ width: '449px', backgroundColor: '#FFFFFF', borderRadius: '24px', padding: '40px', position: 'relative', boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
+          <div style={{ width: choosePhaseW, backgroundColor: '#FFFFFF', borderRadius: '24px', padding: isMobile ? '28px 24px' : '40px', position: 'relative', boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
             <button onClick={handleClose} style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', cursor: 'pointer', color: '#7E7E82', fontSize: '20px' }}>✕</button>
-
-            <h2 style={{ fontSize: '32px', lineHeight: '39px', fontWeight: '700', color: '#141415', textAlign: 'center', marginBottom: '40px', marginTop: '16px' }}>
+            <h2 style={{ fontSize: isMobile ? '24px' : '32px', lineHeight: isMobile ? '30px' : '39px', fontWeight: '700', color: '#141415', textAlign: 'center', marginBottom: isMobile ? '28px' : '40px', marginTop: '16px' }}>
               Create your EventHive Account
             </h2>
-
-            <button
-              onClick={handleGoogleRegister}
+            <button onClick={handleGoogleRegister}
               onMouseEnter={() => setGoogleHovered(true)} onMouseLeave={() => setGoogleHovered(false)}
-              style={{ width: '100%', height: '52px', borderRadius: '12px', border: '1px solid #E8E8EA', backgroundColor: googleHovered ? '#EFF9FF' : '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', marginBottom: '16px', transition: 'all 0.2s ease' }}
-            >
+              style={{ width: '100%', height: isMobile ? '48px' : '52px', borderRadius: '12px', border: '1px solid #E8E8EA', backgroundColor: googleHovered ? '#EFF9FF' : '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', marginBottom: '16px', transition: 'all 0.2s ease' }}>
               <svg width="20" height="20" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -269,175 +197,92 @@ function Register() {
               </svg>
               <span style={{ fontSize: '16px', fontWeight: '500', color: '#141415' }}>Sign up with Google</span>
             </button>
-
-            <button
-              onClick={() => setPhase('email')}
+            <button onClick={() => setPhase('email')}
               onMouseEnter={() => setEmailHovered(true)} onMouseLeave={() => setEmailHovered(false)}
-              style={{ width: '100%', height: '52px', borderRadius: '12px', border: '1px solid #E8E8EA', backgroundColor: emailHovered ? '#EFF9FF' : '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', marginBottom: '32px', transition: 'all 0.2s ease' }}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#414143" strokeWidth="2">
-                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                <polyline points="22,6 12,13 2,6"/>
-              </svg>
+              style={{ width: '100%', height: isMobile ? '48px' : '52px', borderRadius: '12px', border: '1px solid #E8E8EA', backgroundColor: emailHovered ? '#EFF9FF' : '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', marginBottom: isMobile ? '24px' : '32px', transition: 'all 0.2s ease' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#414143" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
               <span style={{ fontSize: '16px', fontWeight: '500', color: '#141415' }}>Sign up with Email</span>
             </button>
-
             <p style={{ textAlign: 'center', fontSize: '12px', color: '#7E7E82', margin: 0 }}>
               Already have an account?{' '}
-              <span
-                onClick={() => navigate('/login', { state: { backgroundLocation: backgroundLocation || location } })}
-                style={{ color: '#007ACC', cursor: 'pointer', fontWeight: '500' }}
-              >
-                Log In
-              </span>
+              <span onClick={() => navigate('/login', { state: { backgroundLocation: backgroundLocation || location } })} style={{ color: '#007ACC', cursor: 'pointer', fontWeight: '500' }}>Log In</span>
             </p>
           </div>
         )}
 
-        {/* ── Phase 2: Email Form ── */}
         {phase === 'email' && (
-          <div style={{ width: '560px', maxHeight: '90vh', backgroundColor: '#FFFFFF', borderRadius: '24px', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
-
-            {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px 40px', borderBottom: '1px solid #E8E8EA' }}>
-              <button
-                onClick={() => { setPhase('choose'); setErrors({}) }}
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#59595C" strokeWidth="2" strokeLinecap="round">
-                  <polyline points="15 18 9 12 15 6"/>
-                </svg>
+          <div style={{ width: emailPhaseW, maxHeight: '90vh', backgroundColor: '#FFFFFF', borderRadius: '24px', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: isMobile ? '20px 24px' : '24px 40px', borderBottom: '1px solid #E8E8EA' }}>
+              <button onClick={() => { setPhase('choose'); setErrors({}) }} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#59595C" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
                 <span style={{ fontSize: '14px', color: '#59595C' }}>Back</span>
               </button>
               <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#141415', margin: 0 }}>Create Account</h3>
               <button onClick={handleClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7E7E82', fontSize: '20px' }}>✕</button>
             </div>
 
-            {/* Scrollable Form Body */}
-            <div style={{ overflowY: 'auto', padding: '32px 40px', flex: 1 }}>
-
-              {/* First Name + Last Name */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+            <div style={{ overflowY: 'auto', padding: isMobile ? '24px' : '32px 40px', flex: 1 }}>
+              <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : undefined, gridTemplateColumns: isMobile ? undefined : '1fr 1fr', gap: isMobile ? '16px' : '16px', marginBottom: '20px' }}>
                 <div>
                   <label style={labelStyle}>First Name *</label>
-                  <input
-                    type="text" placeholder="First Name" value={form.firstName}
-                    onChange={(e) => set('firstName', e.target.value)}
-                    style={{ ...inputStyle, borderColor: errors.firstName ? '#AE2012' : '#E8E8EA' }}
-                  />
+                  <input type="text" placeholder="First Name" value={form.firstName} onChange={(e) => set('firstName', e.target.value)} style={{ ...inputStyle, borderColor: errors.firstName ? '#AE2012' : '#E8E8EA' }} />
                   {errors.firstName && <span style={errorStyle}>{errors.firstName}</span>}
                 </div>
                 <div>
                   <label style={labelStyle}>Last Name *</label>
-                  <input
-                    type="text" placeholder="Last Name" value={form.lastName}
-                    onChange={(e) => set('lastName', e.target.value)}
-                    style={{ ...inputStyle, borderColor: errors.lastName ? '#AE2012' : '#E8E8EA' }}
-                  />
+                  <input type="text" placeholder="Last Name" value={form.lastName} onChange={(e) => set('lastName', e.target.value)} style={{ ...inputStyle, borderColor: errors.lastName ? '#AE2012' : '#E8E8EA' }} />
                   {errors.lastName && <span style={errorStyle}>{errors.lastName}</span>}
                 </div>
               </div>
 
-              {/* Username */}
               <div style={{ marginBottom: '20px' }}>
                 <label style={labelStyle}>Username *</label>
                 <div style={{ position: 'relative' }}>
                   <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#A5A5AA', fontSize: '16px' }}>@</span>
-                  <input
-                    type="text" placeholder="yourusername" value={form.username}
-                    onChange={(e) => set('username', e.target.value.replace(/\s/g, '').toLowerCase())}
-                    style={{ ...inputStyle, paddingLeft: '32px', borderColor: errors.username ? '#AE2012' : '#E8E8EA' }}
-                  />
+                  <input type="text" placeholder="yourusername" value={form.username} onChange={(e) => set('username', e.target.value.replace(/\s/g, '').toLowerCase())} style={{ ...inputStyle, paddingLeft: '32px', borderColor: errors.username ? '#AE2012' : '#E8E8EA' }} />
                 </div>
                 {errors.username && <span style={errorStyle}>{errors.username}</span>}
               </div>
 
-              {/* Country */}
               <div style={{ marginBottom: '20px' }}>
                 <label style={labelStyle}>Country *</label>
-                <select
-                  value={form.country}
-                  onChange={(e) => {
-                    setForm((prev) => ({ ...prev, country: e.target.value, state: '', city: '' }))
-                    if (errors.country) setErrors((prev) => ({ ...prev, country: '' }))
-                  }}
-                  style={{ ...inputStyle, cursor: 'pointer', borderColor: errors.country ? '#AE2012' : '#E8E8EA' }}
-                >
+                <select value={form.country} onChange={(e) => { setForm((prev) => ({ ...prev, country: e.target.value, state: '', city: '' })); if (errors.country) setErrors((prev) => ({ ...prev, country: '' })) }} style={{ ...inputStyle, cursor: 'pointer', borderColor: errors.country ? '#AE2012' : '#E8E8EA' }}>
                   <option value="">Select your country</option>
                   {allCountries.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
                 {errors.country && <span style={errorStyle}>{errors.country}</span>}
               </div>
 
-              {/* State */}
               <div style={{ marginBottom: '20px' }}>
                 <label style={labelStyle}>State / Province *</label>
                 {availableStates.length > 0 ? (
-                  <select
-                    value={form.state}
-                    onChange={(e) => set('state', e.target.value)}
-                    style={{ ...inputStyle, cursor: 'pointer', borderColor: errors.state ? '#AE2012' : '#E8E8EA' }}
-                    disabled={!form.country}
-                  >
+                  <select value={form.state} onChange={(e) => set('state', e.target.value)} style={{ ...inputStyle, cursor: 'pointer', borderColor: errors.state ? '#AE2012' : '#E8E8EA' }} disabled={!form.country}>
                     <option value="">Select your state</option>
                     {availableStates.map((s) => <option key={s} value={s}>{s}</option>)}
                   </select>
                 ) : (
-                  <input
-                    type="text"
-                    placeholder={form.country ? 'Enter your state / province' : 'Select a country first'}
-                    value={form.state}
-                    onChange={(e) => set('state', e.target.value)}
-                    disabled={!form.country}
-                    style={{ ...inputStyle, borderColor: errors.state ? '#AE2012' : '#E8E8EA', backgroundColor: !form.country ? '#F9F9F9' : '#FFFFFF' }}
-                  />
+                  <input type="text" placeholder={form.country ? 'Enter your state / province' : 'Select a country first'} value={form.state} onChange={(e) => set('state', e.target.value)} disabled={!form.country} style={{ ...inputStyle, borderColor: errors.state ? '#AE2012' : '#E8E8EA', backgroundColor: !form.country ? '#F9F9F9' : '#FFFFFF' }} />
                 )}
                 {errors.state && <span style={errorStyle}>{errors.state}</span>}
               </div>
 
-              {/* City */}
               <div style={{ marginBottom: '20px' }}>
                 <label style={labelStyle}>City *</label>
-                <input
-                  type="text"
-                  placeholder={form.country ? 'Enter your city' : 'Select a country first'}
-                  value={form.city}
-                  onChange={(e) => set('city', e.target.value)}
-                  disabled={!form.country}
-                  style={{ ...inputStyle, borderColor: errors.city ? '#AE2012' : '#E8E8EA', backgroundColor: !form.country ? '#F9F9F9' : '#FFFFFF' }}
-                />
+                <input type="text" placeholder={form.country ? 'Enter your city' : 'Select a country first'} value={form.city} onChange={(e) => set('city', e.target.value)} disabled={!form.country} style={{ ...inputStyle, borderColor: errors.city ? '#AE2012' : '#E8E8EA', backgroundColor: !form.country ? '#F9F9F9' : '#FFFFFF' }} />
                 {errors.city && <span style={errorStyle}>{errors.city}</span>}
               </div>
 
-              {/* Email */}
               <div style={{ marginBottom: '20px' }}>
                 <label style={labelStyle}>Email Address *</label>
-                <input
-                  type="email" placeholder="sample@gmail.com" value={form.email}
-                  onChange={(e) => set('email', e.target.value)}
-                  style={{ ...inputStyle, borderColor: errors.email ? '#AE2012' : '#E8E8EA' }}
-                />
+                <input type="email" placeholder="sample@gmail.com" value={form.email} onChange={(e) => set('email', e.target.value)} style={{ ...inputStyle, borderColor: errors.email ? '#AE2012' : '#E8E8EA' }} />
                 {errors.email && <span style={errorStyle}>{errors.email}</span>}
               </div>
 
-              {/* Password */}
               <div style={{ marginBottom: '20px', position: 'relative' }}>
                 <label style={labelStyle}>Password *</label>
                 <div style={{ position: 'relative' }}>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Create password"
-                    value={form.password}
-                    onChange={(e) => set('password', e.target.value)}
-                    onFocus={() => setShowPasswordRules(true)}
-                    onBlur={() => setShowPasswordRules(false)}
-                    style={{ ...inputStyle, paddingRight: '48px', borderColor: errors.password ? '#AE2012' : '#E8E8EA' }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#7E7E82' }}
-                  >
+                  <input type={showPassword ? 'text' : 'password'} placeholder="Create password" value={form.password} onChange={(e) => set('password', e.target.value)} onFocus={() => setShowPasswordRules(true)} onBlur={() => setShowPasswordRules(false)} style={{ ...inputStyle, paddingRight: '48px', borderColor: errors.password ? '#AE2012' : '#E8E8EA' }} />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#7E7E82' }}>
                     {showPassword ? (
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
                     ) : (
@@ -446,10 +291,8 @@ function Register() {
                   </button>
                 </div>
                 {errors.password && <span style={errorStyle}>{errors.password}</span>}
-
-                {/* Password rules flyout */}
                 {showPasswordRules && (
-                  <div style={{ position: 'absolute', top: '80px', left: 0, width: '100%', backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E8E8EA', padding: '16px', zIndex: 100, boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}>
+                  <div style={{ position: isMobile ? 'static' : 'absolute', top: '80px', left: 0, width: '100%', backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E8E8EA', padding: '16px', zIndex: 100, boxShadow: isMobile ? 'none' : '0 4px 16px rgba(0,0,0,0.1)', marginTop: isMobile ? '8px' : 0, boxSizing: 'border-box' }}>
                     <p style={{ fontSize: '12px', fontWeight: '600', color: '#59595C', marginBottom: '8px' }}>Password must contain:</p>
                     {pwRules.map((rule) => (
                       <div key={rule.label} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
@@ -461,22 +304,11 @@ function Register() {
                 )}
               </div>
 
-              {/* Confirm Password */}
               <div style={{ marginBottom: '32px' }}>
                 <label style={labelStyle}>Confirm Password *</label>
                 <div style={{ position: 'relative' }}>
-                  <input
-                    type={showConfirm ? 'text' : 'password'}
-                    placeholder="Repeat password"
-                    value={form.confirmPassword}
-                    onChange={(e) => set('confirmPassword', e.target.value)}
-                    style={{ ...inputStyle, paddingRight: '48px', borderColor: errors.confirmPassword ? '#AE2012' : '#E8E8EA' }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirm(!showConfirm)}
-                    style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#7E7E82' }}
-                  >
+                  <input type={showConfirm ? 'text' : 'password'} placeholder="Repeat password" value={form.confirmPassword} onChange={(e) => set('confirmPassword', e.target.value)} style={{ ...inputStyle, paddingRight: '48px', borderColor: errors.confirmPassword ? '#AE2012' : '#E8E8EA' }} />
+                  <button type="button" onClick={() => setShowConfirm(!showConfirm)} style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#7E7E82' }}>
                     {showConfirm ? (
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
                     ) : (
@@ -487,95 +319,49 @@ function Register() {
                 {errors.confirmPassword && <span style={errorStyle}>{errors.confirmPassword}</span>}
               </div>
 
-              <button
-                onClick={handleEmailRegister}
-                disabled={loading}
-                style={{ width: '100%', height: '56px', borderRadius: '12px', border: 'none', backgroundColor: '#0097FF', color: '#FFFFFF', fontSize: '18px', fontWeight: '600', cursor: loading ? 'not-allowed' : 'pointer', marginBottom: '24px', opacity: loading ? 0.7 : 1 }}
-              >
+              <button onClick={handleEmailRegister} disabled={loading} style={{ width: '100%', height: isMobile ? '52px' : '56px', borderRadius: '12px', border: 'none', backgroundColor: '#0097FF', color: '#FFFFFF', fontSize: isMobile ? '16px' : '18px', fontWeight: '600', cursor: loading ? 'not-allowed' : 'pointer', marginBottom: '24px', opacity: loading ? 0.7 : 1 }}>
                 {loading ? 'Creating account...' : 'Create Account'}
               </button>
 
               <p style={{ textAlign: 'center', fontSize: '12px', color: '#7E7E82', margin: 0 }}>
                 Already have an account?{' '}
-                <span
-                  onClick={() => navigate('/login', { state: { backgroundLocation: backgroundLocation || location } })}
-                  style={{ color: '#007ACC', cursor: 'pointer', fontWeight: '500' }}
-                >
-                  Log In
-                </span>
+                <span onClick={() => navigate('/login', { state: { backgroundLocation: backgroundLocation || location } })} style={{ color: '#007ACC', cursor: 'pointer', fontWeight: '500' }}>Log In</span>
               </p>
             </div>
           </div>
         )}
 
-        {/* ── Phase 3: OTP ── */}
         {phase === 'otp' && (
-          <div style={{ width: '449px', backgroundColor: '#FFFFFF', borderRadius: '24px', padding: '40px', position: 'relative', boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
-              <button
-                onClick={() => setPhase('email')}
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#59595C" strokeWidth="2" strokeLinecap="round">
-                  <polyline points="15 18 9 12 15 6"/>
-                </svg>
+          <div style={{ width: choosePhaseW, backgroundColor: '#FFFFFF', borderRadius: '24px', padding: isMobile ? '28px 24px' : '40px', position: 'relative', boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: isMobile ? '24px' : '32px' }}>
+              <button onClick={() => setPhase('email')} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#59595C" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
                 <span style={{ fontSize: '14px', color: '#59595C' }}>Back</span>
               </button>
               <button onClick={handleClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7E7E82', fontSize: '20px' }}>✕</button>
             </div>
 
-            <h3 style={{ fontSize: '32px', lineHeight: '39px', fontWeight: '700', color: '#141415', textAlign: 'center', marginBottom: '12px' }}>
-              Verify your Email
-            </h3>
-            <p style={{ fontSize: '16px', color: '#7E7E82', textAlign: 'center', marginBottom: '32px' }}>
+            <h3 style={{ fontSize: isMobile ? '24px' : '32px', lineHeight: isMobile ? '30px' : '39px', fontWeight: '700', color: '#141415', textAlign: 'center', marginBottom: '12px' }}>Verify your Email</h3>
+            <p style={{ fontSize: isMobile ? '14px' : '16px', color: '#7E7E82', textAlign: 'center', marginBottom: isMobile ? '24px' : '32px' }}>
               We sent a 6-digit code to <strong style={{ color: '#141415' }}>{form.email}</strong>
             </p>
 
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginBottom: '32px' }}>
+            <div style={{ display: 'flex', gap: isMobile ? '8px' : '12px', justifyContent: 'center', marginBottom: isMobile ? '24px' : '32px' }}>
               {otp.map((digit, i) => (
-                <input
-                  key={i}
-                  id={'otp-' + i}
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={1}
-                  value={digit}
-                  onChange={(e) => handleOtpChange(i, e.target.value)}
-                  onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                  style={{
-                    width: '52px', height: '60px', borderRadius: '12px', textAlign: 'center',
-                    border: '1px solid ' + (digit ? '#0097FF' : '#E8E8EA'),
-                    fontSize: '24px', fontWeight: '700', color: '#141415',
-                    outline: 'none', boxSizing: 'border-box',
-                    backgroundColor: digit ? '#EFF9FF' : '#FFFFFF',
-                    transition: 'all 0.2s ease',
-                  }}
-                />
+                <input key={i} id={'otp-' + i} type="text" inputMode="numeric" maxLength={1} value={digit}
+                  onChange={(e) => handleOtpChange(i, e.target.value)} onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                  style={{ width: isMobile ? '42px' : '52px', height: isMobile ? '50px' : '60px', borderRadius: '12px', textAlign: 'center', border: '1px solid ' + (digit ? '#0097FF' : '#E8E8EA'), fontSize: isMobile ? '20px' : '24px', fontWeight: '700', color: '#141415', outline: 'none', boxSizing: 'border-box', backgroundColor: digit ? '#EFF9FF' : '#FFFFFF', transition: 'all 0.2s ease' }} />
               ))}
             </div>
 
-            <button
-              onClick={handleVerifyOtp}
-              disabled={otp.join('').length < 6}
-              style={{
-                width: '100%', height: '56px', borderRadius: '12px', border: 'none',
-                backgroundColor: otp.join('').length === 6 ? '#0097FF' : '#C7C7CA',
-                color: '#FFFFFF', fontSize: '18px', fontWeight: '600',
-                cursor: otp.join('').length === 6 ? 'pointer' : 'not-allowed',
-                marginBottom: '24px',
-              }}
-            >
+            <button onClick={handleVerifyOtp} disabled={otp.join('').length < 6}
+              style={{ width: '100%', height: isMobile ? '52px' : '56px', borderRadius: '12px', border: 'none', backgroundColor: otp.join('').length === 6 ? '#0097FF' : '#C7C7CA', color: '#FFFFFF', fontSize: isMobile ? '16px' : '18px', fontWeight: '600', cursor: otp.join('').length === 6 ? 'pointer' : 'not-allowed', marginBottom: '24px' }}>
               Verify & Create Account
             </button>
 
             <p style={{ textAlign: 'center', fontSize: '14px', color: '#7E7E82', margin: 0 }}>
               Didn't receive it?{' '}
-              <span
-                onClick={() => setOtp(['', '', '', '', '', ''])}
-                style={{ color: '#0097FF', cursor: 'pointer', fontWeight: '500' }}
-              >
-                Resend Code
-              </span>
+              <span onClick={() => setOtp(['', '', '', '', '', ''])} style={{ color: '#0097FF', cursor: 'pointer', fontWeight: '500' }}>Resend Code</span>
             </p>
           </div>
         )}

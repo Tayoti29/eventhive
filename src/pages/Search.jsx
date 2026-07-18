@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import { useIsMobile } from '../hooks/useIsMobile'
 
-// Sample data to search through
 const allEvents = [
   { id: 1, type: 'event', title: 'Managing Gen Z In the Workplace', description: 'Instagram Live Session about managing Gen Z in corporate environments and training sessions', category: 'Education', image: 'https://picsum.photos/seed/event1/296/200', organizer: 'Ilegbejie Doris', date: 'Nov. 27' },
   { id: 2, type: 'event', title: 'Zero To Hero Training', description: 'A step by step guide to earning money using just your smartphone. Training and skill development', category: 'Business', image: 'https://picsum.photos/seed/event2/296/200', organizer: 'Jane Ololade', date: 'Mar. 21' },
@@ -29,7 +29,7 @@ const allBlogs = [
 
 const allContent = [...allEvents, ...allMemes, ...allBlogs]
 
-function SearchResultCard({ item }) {
+function SearchResultCard({ item, isMobile }) {
   const [hovered, setHovered] = useState(false)
   const navigate = useNavigate()
 
@@ -47,30 +47,24 @@ function SearchResultCard({ item }) {
   const tc = typeColors[item.type]
 
   return (
-    <div
-      onClick={handleClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{ borderRadius: '12px', overflow: 'hidden', cursor: 'pointer', backgroundColor: '#FFFFFF', boxShadow: hovered ? '0 8px 24px rgba(0,0,0,0.12)' : '0 2px 8px rgba(0,0,0,0.06)', transition: 'all 0.3s ease', transform: hovered ? 'translateY(-4px)' : 'translateY(0)' }}
-    >
-      {/* Image */}
-      <div style={{ position: 'relative', height: '180px' }}>
+    <div onClick={handleClick} onMouseEnter={() => !isMobile && setHovered(true)} onMouseLeave={() => !isMobile && setHovered(false)}
+      style={{ borderRadius: isMobile ? '10px' : '12px', overflow: 'hidden', cursor: 'pointer', backgroundColor: '#FFFFFF', boxShadow: hovered ? '0 8px 24px rgba(0,0,0,0.12)' : '0 2px 8px rgba(0,0,0,0.06)', transition: 'all 0.3s ease', transform: hovered ? 'translateY(-4px)' : 'translateY(0)' }}>
+      <div style={{ position: 'relative', height: isMobile ? '120px' : '180px' }}>
         <img src={item.image} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-        <div style={{ position: 'absolute', top: '10px', left: '10px', padding: '3px 10px', borderRadius: '9999px', backgroundColor: tc.bg, border: `1px solid ${tc.color}` }}>
-          <span style={{ fontSize: '11px', fontWeight: '600', color: tc.color }}>{tc.label}</span>
+        <div style={{ position: 'absolute', top: '10px', left: '10px', padding: isMobile ? '2px 8px' : '3px 10px', borderRadius: '9999px', backgroundColor: tc.bg, border: `1px solid ${tc.color}` }}>
+          <span style={{ fontSize: isMobile ? '10px' : '11px', fontWeight: '600', color: tc.color }}>{tc.label}</span>
         </div>
       </div>
-
-      {/* Content */}
-      <div style={{ padding: '14px' }}>
-        <h4 style={{ fontSize: '15px', fontWeight: '700', color: '#141415', margin: '0 0 6px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</h4>
-        <p style={{ fontSize: '13px', color: '#7E7E82', margin: '0 0 10px 0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '18px' }}>{item.description}</p>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: '12px', color: '#A5A5AA' }}>
-            {item.organizer || item.uploader || item.author}
-            {(item.date) ? ` • ${item.date}` : ''}
+      <div style={{ padding: isMobile ? '10px' : '14px' }}>
+        <h4 style={{ fontSize: isMobile ? '13px' : '15px', fontWeight: '700', color: '#141415', margin: '0 0 6px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</h4>
+        {!isMobile && (
+          <p style={{ fontSize: '13px', color: '#7E7E82', margin: '0 0 10px 0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '18px' }}>{item.description}</p>
+        )}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
+          <span style={{ fontSize: isMobile ? '10px' : '12px', color: '#A5A5AA', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {item.organizer || item.uploader || item.author}{item.date ? ` • ${item.date}` : ''}
           </span>
-          <span style={{ fontSize: '11px', color: tc.color, backgroundColor: tc.bg, padding: '2px 8px', borderRadius: '9999px' }}>{item.category}</span>
+          <span style={{ fontSize: isMobile ? '10px' : '11px', color: tc.color, backgroundColor: tc.bg, padding: '2px 8px', borderRadius: '9999px', flexShrink: 0 }}>{item.category}</span>
         </div>
       </div>
     </div>
@@ -79,6 +73,7 @@ function SearchResultCard({ item }) {
 
 function Search() {
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
   const [searchParams] = useSearchParams()
   const initialQuery = searchParams.get('q') || ''
   const [query, setQuery] = useState(initialQuery)
@@ -87,17 +82,13 @@ function Search() {
 
   const filters = ['All', 'Events', 'Memes', 'Blogs']
 
-  useEffect(() => {
-    if (initialQuery) performSearch(initialQuery)
-  }, [initialQuery])
+  useEffect(() => { if (initialQuery) performSearch(initialQuery) }, [initialQuery])
 
   const performSearch = (q) => {
     if (!q.trim()) { setResults([]); return }
     const lower = q.toLowerCase()
     const found = allContent.filter((item) =>
-      item.title.toLowerCase().includes(lower) ||
-      item.description.toLowerCase().includes(lower) ||
-      item.category.toLowerCase().includes(lower)
+      item.title.toLowerCase().includes(lower) || item.description.toLowerCase().includes(lower) || item.category.toLowerCase().includes(lower)
     )
     setResults(found)
   }
@@ -108,9 +99,7 @@ function Search() {
     navigate(`/search?q=${encodeURIComponent(query)}`, { replace: true })
   }
 
-  const filteredResults = activeFilter === 'All'
-    ? results
-    : results.filter((r) => r.type === activeFilter.toLowerCase().slice(0, -1))
+  const filteredResults = activeFilter === 'All' ? results : results.filter((r) => r.type === activeFilter.toLowerCase().slice(0, -1))
 
   const getCategoryForQuery = () => {
     if (!query) return 'All Events'
@@ -122,41 +111,35 @@ function Search() {
     <div style={{ backgroundColor: '#FFFFFF', minHeight: '100vh' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto' }}><Navbar /></div>
 
-      <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '48px 100px 80px 100px' }}>
+      <div style={{ maxWidth: '1440px', margin: '0 auto', padding: isMobile ? '24px 20px 60px' : '48px 100px 80px 100px' }}>
 
-        {/* Search Header */}
-        <div style={{ marginBottom: '40px' }}>
-          <h1 style={{ fontSize: '32px', fontWeight: '700', color: '#141415', marginBottom: '20px' }}>
+        <div style={{ marginBottom: isMobile ? '28px' : '40px' }}>
+          <h1 style={{ fontSize: isMobile ? '20px' : '32px', fontWeight: '700', color: '#141415', marginBottom: isMobile ? '16px' : '20px' }}>
             {query ? `Search results for "${query}"` : 'Search EventHive'}
           </h1>
 
-          {/* Search Bar */}
           <form onSubmit={handleSearch}>
-            <div style={{ display: 'flex', gap: '12px', maxWidth: '600px' }}>
+            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '12px', maxWidth: isMobile ? '100%' : '600px' }}>
               <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '0 16px', borderRadius: '10px', border: '1px solid #E8E8EA', backgroundColor: '#F9F9F9', height: '48px' }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A5A5AA" strokeWidth="2">
-                  <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-                </svg>
-                <input type="text" placeholder="Search events, memes, blogs..." value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A5A5AA" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <input type="text" placeholder="Search events, memes, blogs..." value={query} onChange={(e) => setQuery(e.target.value)}
                   style={{ flex: 1, border: 'none', outline: 'none', fontSize: '15px', color: '#414143', backgroundColor: 'transparent' }} />
               </div>
               <button type="submit"
-                style={{ height: '48px', padding: '0 24px', borderRadius: '10px', border: 'none', backgroundColor: '#0097FF', color: '#FFFFFF', fontSize: '15px', fontWeight: '600', cursor: 'pointer' }}>
+                style={{ height: '48px', padding: '0 24px', borderRadius: '10px', border: 'none', backgroundColor: '#0097FF', color: '#FFFFFF', fontSize: '15px', fontWeight: '600', cursor: 'pointer', width: isMobile ? '100%' : 'auto' }}>
                 Search
               </button>
             </div>
           </form>
         </div>
 
-        {/* Filter Tabs */}
         {results.length > 0 && (
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '32px', borderBottom: '1px solid #E8E8EA', paddingBottom: '0' }}>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: isMobile ? '20px' : '32px', borderBottom: '1px solid #E8E8EA', overflowX: isMobile ? 'auto' : 'visible', WebkitOverflowScrolling: 'touch' }}>
             {filters.map((f) => {
               const count = f === 'All' ? results.length : results.filter((r) => r.type === f.toLowerCase().slice(0, -1)).length
               return (
                 <button key={f} onClick={() => setActiveFilter(f)}
-                  style={{ padding: '10px 20px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: '500', color: activeFilter === f ? '#141415' : '#59595C', borderBottom: activeFilter === f ? '2px solid #141415' : '2px solid transparent', marginBottom: '-1px', transition: 'all 0.2s ease' }}>
+                  style={{ padding: '10px 16px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '500', color: activeFilter === f ? '#141415' : '#59595C', borderBottom: activeFilter === f ? '2px solid #141415' : '2px solid transparent', marginBottom: '-1px', flexShrink: 0, whiteSpace: 'nowrap' }}>
                   {f} ({count})
                 </button>
               )
@@ -164,46 +147,36 @@ function Search() {
           </div>
         )}
 
-        {/* Results */}
         {query && results.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '80px 0' }}>
+          <div style={{ textAlign: 'center', padding: isMobile ? '60px 0' : '80px 0' }}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
-            <h3 style={{ fontSize: '24px', fontWeight: '600', color: '#141415', marginBottom: '8px' }}>No results found</h3>
-            <p style={{ fontSize: '16px', color: '#7E7E82' }}>Try searching with different keywords</p>
+            <h3 style={{ fontSize: isMobile ? '19px' : '24px', fontWeight: '600', color: '#141415', marginBottom: '8px' }}>No results found</h3>
+            <p style={{ fontSize: isMobile ? '14px' : '16px', color: '#7E7E82' }}>Try searching with different keywords</p>
           </div>
         ) : !query ? (
-          <div style={{ textAlign: 'center', padding: '80px 0' }}>
+          <div style={{ textAlign: 'center', padding: isMobile ? '60px 0' : '80px 0' }}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
-            <h3 style={{ fontSize: '24px', fontWeight: '600', color: '#141415', marginBottom: '8px' }}>What are you looking for?</h3>
-            <p style={{ fontSize: '16px', color: '#7E7E82' }}>Search for events, memes or blogs above</p>
+            <h3 style={{ fontSize: isMobile ? '19px' : '24px', fontWeight: '600', color: '#141415', marginBottom: '8px' }}>What are you looking for?</h3>
+            <p style={{ fontSize: isMobile ? '14px' : '16px', color: '#7E7E82' }}>Search for events, memes or blogs above</p>
           </div>
         ) : (
           <>
-            <p style={{ fontSize: '14px', color: '#7E7E82', marginBottom: '24px' }}>
+            <p style={{ fontSize: isMobile ? '13px' : '14px', color: '#7E7E82', marginBottom: isMobile ? '16px' : '24px' }}>
               Found <strong style={{ color: '#141415' }}>{filteredResults.length}</strong> result{filteredResults.length !== 1 ? 's' : ''} {activeFilter !== 'All' ? `in ${activeFilter}` : ''}
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px' }}>
-              {filteredResults.map((item) => (
-                <SearchResultCard key={`${item.type}-${item.id}`} item={item} />
-              ))}
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: isMobile ? '12px' : '24px' }}>
+              {filteredResults.map((item) => <SearchResultCard key={`${item.type}-${item.id}`} item={item} isMobile={isMobile} />)}
             </div>
           </>
         )}
       </div>
 
-      {/* Floating Button */}
-      {results.length > 0 && (
+      {results.length > 0 && !isMobile && (
         <div style={{ position: 'fixed', right: '32px', top: '50%', transform: 'translateY(-50%)', zIndex: 100 }}>
-          <button
-            onClick={() => navigate(`/category?type=${getCategoryForQuery()}`)}
-            style={{ writing: 'vertical-rl', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: '16px 12px', backgroundColor: '#0097FF', color: '#FFFFFF', border: 'none', borderRadius: '12px', cursor: 'pointer', boxShadow: '0 4px 16px rgba(0,151,255,0.3)', fontSize: '12px', fontWeight: '600', lineHeight: '1.4', textAlign: 'center', maxWidth: '56px' }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-            </svg>
-            <span style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', fontSize: '11px' }}>
-              View All Related
-            </span>
+          <button onClick={() => navigate(`/category?type=${getCategoryForQuery()}`)}
+            style={{ writing: 'vertical-rl', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: '16px 12px', backgroundColor: '#0097FF', color: '#FFFFFF', border: 'none', borderRadius: '12px', cursor: 'pointer', boxShadow: '0 4px 16px rgba(0,151,255,0.3)', fontSize: '12px', fontWeight: '600', lineHeight: '1.4', textAlign: 'center', maxWidth: '56px' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <span style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', fontSize: '11px' }}>View All Related</span>
           </button>
         </div>
       )}

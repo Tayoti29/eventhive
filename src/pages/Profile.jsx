@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../supabaseClient'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 function isValidUUID(id) {
   return id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(id))
@@ -13,18 +14,10 @@ function UserAvatar({ avatarUrl, name, size }) {
   const s = size || 96
   const initial = (name || 'U').charAt(0).toUpperCase()
   if (avatarUrl) {
-    return (
-      <img src={avatarUrl} alt={name}
-        style={{ width: s, height: s, borderRadius: '9999px', objectFit: 'cover', border: '4px solid #FFFFFF', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }} />
-    )
+    return <img src={avatarUrl} alt={name} style={{ width: s, height: s, borderRadius: '9999px', objectFit: 'cover', border: '4px solid #FFFFFF', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }} />
   }
   return (
-    <div style={{
-      width: s, height: s, borderRadius: '9999px', backgroundColor: '#0097FF',
-      border: '4px solid #FFFFFF', boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      color: '#FFFFFF', fontSize: s * 0.4, fontWeight: '700', flexShrink: 0,
-    }}>
+    <div style={{ width: s, height: s, borderRadius: '9999px', backgroundColor: '#0097FF', border: '4px solid #FFFFFF', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFFFFF', fontSize: s * 0.4, fontWeight: '700', flexShrink: 0 }}>
       {initial}
     </div>
   )
@@ -64,16 +57,14 @@ const statesByCountry = {
   Germany: ['Baden-Württemberg','Bavaria','Berlin','Brandenburg','Bremen','Hamburg','Hesse','Lower Saxony','North Rhine-Westphalia','Rhineland-Palatinate','Saarland','Saxony','Saxony-Anhalt','Schleswig-Holstein','Thuringia'],
 }
 
-function BackButton() {
+function BackButton({ isMobile }) {
   const navigate = useNavigate()
   const [hovered, setHovered] = useState(false)
   return (
     <button onClick={() => navigate(-1)} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-      style={{ width: '92px', height: '40px', borderRadius: '8px', border: '1px solid ' + (hovered ? '#F3F3F4' : '#E8E8EA'), backgroundColor: hovered ? '#F9F9F9' : '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.2s ease', marginBottom: '32px' }}>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#141415" strokeWidth="2" strokeLinecap="round">
-        <polyline points="15 18 9 12 15 6"/>
-      </svg>
-      <span style={{ fontSize: '14px', color: '#141415' }}>Back</span>
+      style={{ width: isMobile ? '76px' : '92px', height: isMobile ? '34px' : '40px', borderRadius: '8px', border: '1px solid ' + (hovered ? '#F3F3F4' : '#E8E8EA'), backgroundColor: hovered ? '#F9F9F9' : '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.2s ease', marginBottom: isMobile ? '20px' : '32px' }}>
+      <svg width={isMobile ? '18' : '20'} height={isMobile ? '18' : '20'} viewBox="0 0 24 24" fill="none" stroke="#141415" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      <span style={{ fontSize: isMobile ? '13px' : '14px', color: '#141415' }}>Back</span>
     </button>
   )
 }
@@ -81,6 +72,7 @@ function BackButton() {
 function Profile() {
   const navigate = useNavigate()
   const { user } = useAuth()
+  const isMobile = useIsMobile()
   const avatarInputRef = useRef(null)
 
   const [avatarPreview, setAvatarPreview] = useState(null)
@@ -90,15 +82,13 @@ function Profile() {
   const [successMsg, setSuccessMsg] = useState('')
   const [dbProfile, setDbProfile] = useState(null)
   const [profile, setProfile] = useState({
-    firstName: '', lastName: '', username: '', email: '',
-    bio: '', country: '', state: '', city: '', company: '',
+    firstName: '', lastName: '', username: '', email: '', bio: '', country: '', state: '', city: '', company: '',
     avatarUrl: null, lastEdited: null,
   })
   const [editForm, setEditForm] = useState({})
 
   useEffect(() => {
     if (!user) return
-
     const regStr = sessionStorage.getItem('registrationData')
     const reg = regStr ? JSON.parse(regStr) : {}
     const meta = user.user_metadata || {}
@@ -148,7 +138,6 @@ function Profile() {
     if (!profile.lastEdited) return true
     return (Date.now() - new Date(profile.lastEdited).getTime()) / (1000 * 60 * 60 * 24) >= 21
   }
-
   const daysUntilEdit = () => {
     if (!profile.lastEdited) return 0
     return Math.ceil(21 - (Date.now() - new Date(profile.lastEdited).getTime()) / (1000 * 60 * 60 * 24))
@@ -180,10 +169,8 @@ function Profile() {
         user_id: isValidUUID(user?.id) ? user.id : null,
         first_name: editForm.firstName, last_name: editForm.lastName,
         username: editForm.username, email: editForm.email,
-        bio: editForm.bio, country: editForm.country,
-        state: editForm.state, city: editForm.city,
-        company: editForm.company, avatar_url: avatarUrl || null,
-        last_edited: new Date().toISOString(),
+        bio: editForm.bio, country: editForm.country, state: editForm.state, city: editForm.city,
+        company: editForm.company, avatar_url: avatarUrl || null, last_edited: new Date().toISOString(),
       }
       if (isValidUUID(user?.id)) {
         if (dbProfile) await supabase.from('profiles').update(profileData).eq('user_id', user.id)
@@ -202,57 +189,48 @@ function Profile() {
   const displayName = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || user?.email?.split('@')[0] || 'User'
   const availableStates = statesByCountry[editForm.country] || []
 
-  const inputStyle = { width: '100%', height: '44px', borderRadius: '8px', border: '1px solid #E8E8EA', padding: '0 14px', fontSize: '14px', color: '#414143', outline: 'none', boxSizing: 'border-box', backgroundColor: '#FFFFFF' }
+  // New-user prompt: show when bio hasn't been filled in yet
+  const needsProfileCompletion = !profile.bio || !profile.bio.trim()
+
+  const inputStyle = { width: '100%', height: isMobile ? '46px' : '44px', borderRadius: '8px', border: '1px solid #E8E8EA', padding: '0 14px', fontSize: isMobile ? '15px' : '14px', color: '#414143', outline: 'none', boxSizing: 'border-box', backgroundColor: '#FFFFFF' }
   const readOnlyStyle = { ...inputStyle, backgroundColor: '#F9F9F9', color: '#A5A5AA', cursor: 'not-allowed' }
   const labelStyle = { fontSize: '14px', fontWeight: '600', color: '#141415', display: 'block', marginBottom: '6px' }
 
   return (
     <div style={{ backgroundColor: '#FFFFFF', minHeight: '100vh' }}>
       {successMsg && (
-        <div style={{ position: 'fixed', top: '24px', right: '24px', zIndex: 3000, backgroundColor: '#141415', color: '#FFFFFF', borderRadius: '12px', padding: '14px 24px', fontSize: '14px', fontWeight: '500', boxShadow: '0 8px 24px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ position: 'fixed', top: isMobile ? '16px' : '24px', right: isMobile ? '16px' : '24px', left: isMobile ? '16px' : 'auto', zIndex: 3000, backgroundColor: '#141415', color: '#FFFFFF', borderRadius: '12px', padding: '14px 24px', fontSize: '14px', fontWeight: '500', boxShadow: '0 8px 24px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span>✅</span> {successMsg}
         </div>
       )}
 
       <div style={{ maxWidth: '1440px', margin: '0 auto' }}><Navbar /></div>
 
-      <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '32px 100px 80px' }}>
-        <BackButton />
+      <div style={{ maxWidth: '1440px', margin: '0 auto', padding: isMobile ? '20px 20px 60px' : '32px 100px 80px' }}>
+        <BackButton isMobile={isMobile} />
 
         {/* Header Card */}
-        <div style={{ borderRadius: '24px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: '32px' }}>
-          <div style={{ height: '180px', background: 'linear-gradient(135deg, #0097FF 0%, #00C6FF 50%, #FED86E 100%)' }} />
-          <div style={{ backgroundColor: '#FFFFFF', padding: '0 40px 32px' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: '-48px', marginBottom: '20px' }}>
+        <div style={{ borderRadius: isMobile ? '18px' : '24px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: isMobile ? '24px' : '32px' }}>
+          <div style={{ height: isMobile ? '110px' : '180px', background: 'linear-gradient(135deg, #0097FF 0%, #00C6FF 50%, #FED86E 100%)' }} />
+          <div style={{ backgroundColor: '#FFFFFF', padding: isMobile ? '0 20px 24px' : '0 40px 32px' }}>
+            <div style={{ display: 'flex', alignItems: isMobile ? 'flex-start' : 'flex-end', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', marginTop: isMobile ? '-40px' : '-48px', marginBottom: '20px', gap: isMobile ? '14px' : 0 }}>
               <div style={{ position: 'relative', display: 'inline-block' }}>
-                <UserAvatar avatarUrl={avatarPreview} name={displayName} size={96} />
+                <UserAvatar avatarUrl={avatarPreview} name={displayName} size={isMobile ? 80 : 96} />
                 <button onClick={() => avatarInputRef.current?.click()}
                   style={{ position: 'absolute', bottom: '2px', right: '2px', width: '28px', height: '28px', borderRadius: '9999px', backgroundColor: '#0097FF', border: '2px solid #FFFFFF', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2.5">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                   </svg>
                 </button>
-                <input ref={avatarInputRef} type="file" accept="image/*" style={{ display: 'none' }}
-                  onChange={(e) => handleAvatarChange(e.target.files[0])} />
+                <input ref={avatarInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleAvatarChange(e.target.files[0])} />
               </div>
-              <button onClick={openEditModal}
-                style={{ height: '40px', padding: '0 20px', borderRadius: '8px', border: '1px solid #E8E8EA', backgroundColor: '#FFFFFF', fontSize: '14px', color: '#141415', fontWeight: '500', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#F9F9F9' }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#FFFFFF' }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#141415" strokeWidth="2">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                </svg>
-                Edit Profile
-              </button>
             </div>
 
-            <h2 style={{ fontSize: '28px', fontWeight: '700', color: '#141415', margin: '0 0 4px' }}>{displayName}</h2>
-            {profile.username && <p style={{ fontSize: '14px', color: '#7E7E82', margin: '0 0 4px' }}>@{profile.username.replace('@', '')}</p>}
-            <p style={{ fontSize: '14px', color: '#7E7E82', margin: '0 0 12px' }}>{profile.email}</p>
-            {profile.bio && <p style={{ fontSize: '15px', color: '#414143', margin: '0 0 12px', maxWidth: '600px' }}>{profile.bio}</p>}
-            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+            <h2 style={{ fontSize: isMobile ? '22px' : '28px', fontWeight: '700', color: '#141415', margin: '0 0 4px' }}>{displayName}</h2>
+            {profile.username && <p style={{ fontSize: isMobile ? '13px' : '14px', color: '#7E7E82', margin: '0 0 4px' }}>@{profile.username.replace('@', '')}</p>}
+            <p style={{ fontSize: isMobile ? '13px' : '14px', color: '#7E7E82', margin: '0 0 12px' }}>{profile.email}</p>
+            {profile.bio && <p style={{ fontSize: isMobile ? '14px' : '15px', color: '#414143', margin: '0 0 12px', maxWidth: '600px' }}>{profile.bio}</p>}
+            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '16px' }}>
               {(profile.city || profile.state || profile.country) && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <span>📍</span>
@@ -266,41 +244,60 @@ function Profile() {
                 </div>
               )}
             </div>
+
+            {/* Complete your Profile Information notice — shown above the Edit Profile button */}
+            {needsProfileCompletion && (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: '12px', padding: isMobile ? '14px' : '16px 20px',
+                borderRadius: '12px', backgroundColor: '#FFFCF4', border: '1px solid #FED86E', marginBottom: '16px',
+              }}>
+                <span style={{ fontSize: '20px', flexShrink: 0 }}>✨</span>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: isMobile ? '13px' : '14px', fontWeight: '600', color: '#141415', margin: '0 0 2px' }}>Complete your Profile Information</p>
+                  <p style={{ fontSize: isMobile ? '12px' : '13px', color: '#7E7E82', margin: 0 }}>Add a bio to help others get to know you better.</p>
+                </div>
+              </div>
+            )}
+
+            <button onClick={openEditModal}
+              style={{ width: isMobile ? '100%' : 'auto', height: isMobile ? '44px' : '40px', padding: '0 20px', borderRadius: '8px', border: '1px solid #E8E8EA', backgroundColor: '#FFFFFF', fontSize: '14px', color: '#141415', fontWeight: '500', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#141415" strokeWidth="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              Edit Profile
+            </button>
+
             {!canEdit() && <p style={{ fontSize: '12px', color: '#A5A5AA', marginTop: '12px' }}>⏳ You can edit your profile again in {daysUntilEdit()} days</p>}
           </div>
         </div>
 
         {/* Quick Actions */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '32px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '14px' : '20px', marginBottom: isMobile ? '24px' : '32px' }}>
           {[
             { title: 'My Saved Box', desc: 'View and manage your saved events, memes and blogs', icon: '🔖', color: '#EFF9FF', border: '#0097FF', to: '/saved' },
             { title: 'My Uploads', desc: 'Manage your created events, memes and blogs', icon: '📤', color: '#FFFCF4', border: '#FFB900', to: '/my-uploads' },
           ].map((card) => (
             <div key={card.title} onClick={() => navigate(card.to)}
-              style={{ borderRadius: '16px', padding: '24px', cursor: 'pointer', backgroundColor: card.color, border: '1px solid ' + card.border + '33', transition: 'all 0.2s ease' }}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.08)' }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}>
-              <div style={{ fontSize: '32px', marginBottom: '12px' }}>{card.icon}</div>
-              <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#141415', margin: '0 0 6px' }}>{card.title}</h3>
-              <p style={{ fontSize: '14px', color: '#59595C', margin: 0 }}>{card.desc}</p>
+              style={{ borderRadius: '16px', padding: isMobile ? '20px' : '24px', cursor: 'pointer', backgroundColor: card.color, border: '1px solid ' + card.border + '33' }}>
+              <div style={{ fontSize: isMobile ? '28px' : '32px', marginBottom: '12px' }}>{card.icon}</div>
+              <h3 style={{ fontSize: isMobile ? '16px' : '18px', fontWeight: '700', color: '#141415', margin: '0 0 6px' }}>{card.title}</h3>
+              <p style={{ fontSize: isMobile ? '13px' : '14px', color: '#59595C', margin: 0 }}>{card.desc}</p>
             </div>
           ))}
         </div>
 
         {/* Create Content */}
-        <div style={{ borderRadius: '16px', padding: '32px', backgroundColor: '#F9F9F9', border: '1px solid #E8E8EA', textAlign: 'center' }}>
-          <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#141415', marginBottom: '8px' }}>Create Something</h3>
-          <p style={{ fontSize: '14px', color: '#7E7E82', marginBottom: '24px' }}>Share events, memes or blogs with the community</p>
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+        <div style={{ borderRadius: '16px', padding: isMobile ? '24px 20px' : '32px', backgroundColor: '#F9F9F9', border: '1px solid #E8E8EA', textAlign: 'center' }}>
+          <h3 style={{ fontSize: isMobile ? '17px' : '20px', fontWeight: '700', color: '#141415', marginBottom: '8px' }}>Create Something</h3>
+          <p style={{ fontSize: isMobile ? '13px' : '14px', color: '#7E7E82', marginBottom: '24px' }}>Share events, memes or blogs with the community</p>
+          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '12px', justifyContent: 'center' }}>
             {[
               { label: '📅 Create Event', to: '/events/create', bg: '#0097FF', color: '#FFFFFF', border: 'none' },
               { label: '😂 Upload Meme', to: '/memes/create', bg: '#FFFFFF', color: '#414143', border: '1px solid #E8E8EA' },
               { label: '✍️ Write Blog', to: '/blog/create', bg: '#FFFFFF', color: '#414143', border: '1px solid #E8E8EA' },
             ].map((btn) => (
               <button key={btn.to} onClick={() => navigate(btn.to)}
-                style={{ height: '44px', padding: '0 20px', borderRadius: '8px', backgroundColor: btn.bg, color: btn.color, border: btn.border, cursor: 'pointer', fontSize: '14px', fontWeight: '600' }}
-                onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.85' }}
-                onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}>
+                style={{ height: isMobile ? '46px' : '44px', padding: '0 20px', borderRadius: '8px', backgroundColor: btn.bg, color: btn.color, border: btn.border, cursor: 'pointer', fontSize: '14px', fontWeight: '600' }}>
                 {btn.label}
               </button>
             ))}
@@ -312,21 +309,21 @@ function Profile() {
 
       {/* Edit Modal */}
       {showEditModal && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,12,20,0.75)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,12,20,0.75)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '0 24px' : 0 }}
           onClick={(e) => { if (e.target === e.currentTarget) setShowEditModal(false) }}>
-          <div style={{ width: '560px', maxHeight: '85vh', backgroundColor: '#FFFFFF', borderRadius: '24px', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px 32px', borderBottom: '1px solid #E8E8EA' }}>
+          <div style={{ width: isMobile ? '100%' : '560px', maxHeight: '85vh', backgroundColor: '#FFFFFF', borderRadius: isMobile ? '18px' : '24px', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: isMobile ? '20px 24px' : '24px 32px', borderBottom: '1px solid #E8E8EA' }}>
               <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#141415', margin: 0 }}>Edit Profile</h3>
               <button onClick={() => setShowEditModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: '#7E7E82' }}>✕</button>
             </div>
-            <div style={{ overflowY: 'auto', padding: '32px', flex: 1 }}>
+            <div style={{ overflowY: 'auto', padding: isMobile ? '24px' : '32px', flex: 1 }}>
               {!canEdit() && (
                 <div style={{ backgroundColor: '#FFF6DE', border: '1px solid #FED86E', borderRadius: '8px', padding: '12px 16px', marginBottom: '20px', fontSize: '13px', color: '#B88700' }}>
                   ⚠️ You can edit again in {daysUntilEdit()} days.
                 </div>
               )}
               <p style={{ fontSize: '12px', fontWeight: '600', color: '#A5A5AA', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px' }}>Account Info (cannot be changed)</p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+              <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : undefined, gridTemplateColumns: isMobile ? undefined : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
                 <div><label style={labelStyle}>First Name</label><input value={editForm.firstName || ''} readOnly style={readOnlyStyle} /></div>
                 <div><label style={labelStyle}>Last Name</label><input value={editForm.lastName || ''} readOnly style={readOnlyStyle} /></div>
               </div>
@@ -352,7 +349,7 @@ function Profile() {
                 <textarea placeholder="Tell us about yourself..." maxLength={100} value={editForm.bio || ''}
                   onChange={(e) => setEditForm((p) => ({ ...p, bio: e.target.value }))}
                   disabled={!canEdit()} rows={3}
-                  style={{ width: '100%', borderRadius: '8px', border: '1px solid #E8E8EA', padding: '10px 14px', fontSize: '14px', color: '#414143', outline: 'none', boxSizing: 'border-box', resize: 'none', fontFamily: 'inherit', backgroundColor: canEdit() ? '#FFFFFF' : '#F9F9F9' }} />
+                  style={{ width: '100%', borderRadius: '8px', border: '1px solid #E8E8EA', padding: '10px 14px', fontSize: isMobile ? '15px' : '14px', color: '#414143', outline: 'none', boxSizing: 'border-box', resize: 'none', fontFamily: 'inherit', backgroundColor: canEdit() ? '#FFFFFF' : '#F9F9F9' }} />
                 <span style={{ fontSize: '11px', color: '#A5A5AA' }}>{(editForm.bio || '').length}/100</span>
               </div>
 
@@ -395,7 +392,7 @@ function Profile() {
                   disabled={!canEdit()} style={!canEdit() ? readOnlyStyle : inputStyle} />
               </div>
             </div>
-            <div style={{ padding: '20px 32px', borderTop: '1px solid #E8E8EA', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+            <div style={{ padding: isMobile ? '16px 24px' : '20px 32px', borderTop: '1px solid #E8E8EA', display: 'flex', flexDirection: isMobile ? 'column-reverse' : 'row', justifyContent: 'flex-end', gap: '12px' }}>
               <button onClick={() => setShowEditModal(false)}
                 style={{ height: '44px', padding: '0 24px', borderRadius: '8px', border: '1px solid #E8E8EA', backgroundColor: '#FFFFFF', fontSize: '14px', color: '#414143', cursor: 'pointer' }}>
                 Cancel
