@@ -17,6 +17,9 @@ import Search from './pages/Search'
 import Saved from './pages/Saved'
 import MyUploads from './pages/MyUploads'
 import ContactUs from './pages/ContactUs'
+import AdminLogin from './pages/AdminLogin'
+import AdminAds from './pages/AdminAds'
+
 
 function App() {
   const location = useLocation()
@@ -48,6 +51,8 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/ads" element={<AdminAds />} />
         </Routes>
       )}
     </>

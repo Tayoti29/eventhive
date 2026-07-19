@@ -25,7 +25,7 @@ function SubscribeSection() {
         gap: isMobile ? '28px' : '40px',
       }}
     >
-      <div style={{ flex: 1, maxWidth: isMobile ? 'none' : '680px' }}>
+      <div style={{ flex: 1, maxWidth: isMobile ? 'none' : '680px', width: '100%' }}>
         <h2 style={{ fontSize: isMobile ? '24px' : '40px', lineHeight: isMobile ? '30px' : '48px', fontWeight: '700', color: '#F9F9F9', marginBottom: isMobile ? '8px' : '12px' }}>
           Stay Updated
         </h2>
@@ -38,7 +38,14 @@ function SubscribeSection() {
             ✅ You're subscribed! We'll keep you updated.
           </p>
         ) : (
-          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '10px' : 0, width: isMobile ? '100%' : '548px', height: isMobile ? 'auto' : '48px' }}>
+          <div style={{
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            gap: isMobile ? '10px' : 0,
+            width: isMobile ? '100%' : '548px',
+            maxWidth: '100%',
+            boxSizing: 'border-box',
+          }}>
             <input
               type="email"
               placeholder="sample@gmail.com"
@@ -46,17 +53,34 @@ function SubscribeSection() {
               onChange={(e) => setEmail(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSubscribe()}
               style={{
-                flex: 1, height: '48px', padding: '0 16px', fontSize: '14px', color: '#414143',
-                backgroundColor: '#FFFFFF', border: 'none',
-                borderRadius: isMobile ? '6px' : '6px 0 0 6px', outline: 'none', boxSizing: 'border-box',
+                width: isMobile ? '100%' : 'auto',
+                flex: isMobile ? undefined : 1,
+                height: isMobile ? '52px' : '48px',
+                padding: '0 16px',
+                fontSize: isMobile ? '15px' : '14px',
+                color: '#414143',
+                backgroundColor: '#FFFFFF',
+                border: 'none',
+                borderRadius: isMobile ? '8px' : '6px 0 0 6px',
+                outline: 'none',
+                boxSizing: 'border-box',
               }}
             />
             <button
               onClick={handleSubscribe}
               style={{
-                height: '48px', padding: '0 24px', backgroundColor: '#0097FF', color: '#F9F9F9',
-                fontSize: '14px', fontWeight: '500', border: 'none',
-                borderRadius: isMobile ? '6px' : '0 6px 6px 0', cursor: 'pointer', whiteSpace: 'nowrap',
+                width: isMobile ? '100%' : 'auto',
+                height: isMobile ? '52px' : '48px',
+                padding: '0 24px',
+                backgroundColor: '#0097FF',
+                color: '#F9F9F9',
+                fontSize: isMobile ? '15px' : '14px',
+                fontWeight: '600',
+                border: 'none',
+                borderRadius: isMobile ? '8px' : '0 6px 6px 0',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                boxSizing: 'border-box',
               }}
             >
               Subscribe
