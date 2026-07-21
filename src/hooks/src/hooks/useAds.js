@@ -14,12 +14,24 @@ export function useAds(page, slot) {
         if (slot) query = query.eq('slot', slot)
         const { data, error } = await query.order('created_at', { ascending: false })
         if (active) {
-          setAds(error || !data ? [] : data.map((a) => ({
-            id: a.id, src: a.media_url, type: a.media_type, link: a.link_url || '',
-            width: a.width, height: a.height,
-          })))
+          if (error || !data) {
+            setAds([])
+          } else {
+            const now = new Date()
+            const withinSchedule = data.filter((a) => {
+              if (a.start_date && new Date(a.start_date) > now) return false
+              if (a.end_date && new Date(a.end_date) < now) return false
+              return true
+            })
+            setAds(withinSchedule.map((a) => ({
+              id: a.id, src: a.media_url, type: a.media_type, link: a.link_url || '',
+              width: a.width, height: a.height,
+            })))
+          }
         }
-      } catch { if (active) setAds([]) }
+      } catch {
+        if (active) setAds([])
+      }
       if (active) setLoading(false)
     }
     fetchAds()

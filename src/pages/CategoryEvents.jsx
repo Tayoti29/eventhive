@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { supabase } from '../supabaseClient'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { useAds } from '../hooks/useAds'
 
 const eventCategories = [
   { label: 'All Events', icon: '🎪' }, { label: 'Concert', icon: '🎵' },
@@ -146,6 +147,40 @@ function EventCard({ event, isMobile }) {
   )
 }
 
+// Ad card that fills an event grid slot — same footprint as EventCard, no title/organizer details
+function EventAdCard({ ad, isMobile }) {
+  const [hovered, setHovered] = useState(false)
+  const content = (
+    <div onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+      style={{ width: '100%', borderRadius: isMobile ? '12px' : '16px', overflow: 'hidden', boxShadow: hovered ? '0 8px 24px rgba(0,0,0,0.15)' : '0 2px 8px rgba(0,0,0,0.08)', transition: 'all 0.3s ease', transform: hovered ? 'translateY(-4px)' : 'translateY(0)', backgroundColor: '#F3F3F4', position: 'relative', height: isMobile ? '140px' : '200px', cursor: ad.link ? 'pointer' : 'default', marginBottom: isMobile ? '0' : '24px' }}>
+      {ad.type === 'video'
+        ? <video src={ad.src} style={{ width: '100%', height: '100%', objectFit: 'cover' }} autoPlay loop muted playsInline />
+        : <img src={ad.src} alt="Advertisement" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+      }
+      <span style={{ position: 'absolute', top: '10px', left: '10px', fontSize: '10px', fontWeight: '600', color: '#FFFFFF', backgroundColor: 'rgba(0,0,0,0.55)', padding: '3px 10px', borderRadius: '9999px', letterSpacing: '0.3px' }}>
+        Ad
+      </span>
+    </div>
+  )
+  if (ad.link) return <a href={ad.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'block' }}>{content}</a>
+  return content
+}
+
+// Inserts an ad after every 8 events
+function buildEventItemsWithAds(items, ads) {
+  if (!ads || ads.length === 0) return items.map((it) => ({ kind: 'event', data: it }))
+  const out = []
+  let adIndex = 0
+  items.forEach((it, i) => {
+    out.push({ kind: 'event', data: it })
+    if ((i + 1) % 8 === 0) {
+      out.push({ kind: 'ad', data: ads[adIndex % ads.length] })
+      adIndex += 1
+    }
+  })
+  return out
+}
+
 function CategoryTabs({ category, onCategoryChange, isMobile }) {
   const [showFlyout, setShowFlyout] = useState(false)
   const flyoutRef = useRef(null)
@@ -224,6 +259,7 @@ function CategoryEvents() {
   const searchParams = new URLSearchParams(location.search)
   const initialCategory = searchParams.get('type') || 'All Events'
   const isMobile = useIsMobile()
+  const { ads: eventGridAds } = useAds('event_list', 'grid')
 
   const [category, setCategory] = useState(initialCategory)
   const [events, setEvents] = useState([])
@@ -288,8 +324,9 @@ function CategoryEvents() {
     return () => observer.disconnect()
   }, [loadMore])
 
+  const eventItems = buildEventItemsWithAds(events, eventGridAds)
   const columns = isMobile ? [[], []] : [[], [], [], []]
-  events.forEach((event, i) => columns[i % columns.length].push(event))
+  eventItems.forEach((item, i) => columns[i % columns.length].push(item))
 
   return (
     <div style={{ backgroundColor: '#FFFFFF' }}>
@@ -341,10 +378,18 @@ function CategoryEvents() {
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: isMobile ? '14px' : '24px', alignItems: 'start' }}>
               {isMobile
-                ? events.map((event) => <EventCard key={event.id} event={event} isMobile={isMobile} />)
+                ? eventItems.map((item, idx) =>
+                    item.kind === 'ad'
+                      ? <EventAdCard key={'ad-' + idx} ad={item.data} isMobile={isMobile} />
+                      : <EventCard key={item.data.id} event={item.data} isMobile={isMobile} />
+                  )
                 : columns.map((col, colIndex) => (
                     <div key={colIndex}>
-                      {col.map((event) => <EventCard key={event.id} event={event} isMobile={isMobile} />)}
+                      {col.map((item, idx) =>
+                        item.kind === 'ad'
+                          ? <EventAdCard key={'ad-' + colIndex + '-' + idx} ad={item.data} isMobile={isMobile} />
+                          : <EventCard key={item.data.id} event={item.data} isMobile={isMobile} />
+                      )}
                     </div>
                   ))
               }

@@ -6,6 +6,7 @@ import SaveButton from '../components/SaveButton'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../supabaseClient'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { useAds } from '../hooks/useAds'
 
 function isValidUUID(id) {
   return id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(id))
@@ -23,14 +24,16 @@ function UserAvatar({ avatarUrl, name, size = 32 }) {
   )
 }
 
-function BackButton() {
+function BackButton({ isMobile }) {
   const navigate = useNavigate()
   const [hovered, setHovered] = useState(false)
   return (
     <button onClick={() => navigate(-1)} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-      style={{ width: '92px', height: '40px', borderRadius: '8px', border: `1px solid ${hovered ? '#F3F3F4' : '#E8E8EA'}`, backgroundColor: hovered ? '#F9F9F9' : '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', boxShadow: hovered ? '0 2px 8px rgba(0,0,0,0.08)' : 'none', transition: 'all 0.2s ease' }}>
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#141415" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6" /></svg>
-      <span style={{ fontSize: '16px', color: '#141415', fontWeight: '400' }}>Back</span>
+      style={{ width: isMobile ? '76px' : '92px', height: isMobile ? '34px' : '40px', borderRadius: '8px', border: `1px solid ${hovered ? '#F3F3F4' : '#E8E8EA'}`, backgroundColor: hovered ? '#F9F9F9' : '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', boxShadow: hovered ? '0 2px 8px rgba(0,0,0,0.08)' : 'none', transition: 'all 0.2s ease' }}>
+      <svg width={isMobile ? '18' : '24'} height={isMobile ? '18' : '24'} viewBox="0 0 24 24" fill="none" stroke="#141415" strokeWidth="2" strokeLinecap="round">
+        <polyline points="15 18 9 12 15 6" />
+      </svg>
+      <span style={{ fontSize: isMobile ? '13px' : '16px', color: '#141415', fontWeight: '400' }}>Back</span>
     </button>
   )
 }
@@ -159,12 +162,47 @@ function RelatedEventCard({ event, isMobile }) {
   )
 }
 
+// Ad card that fills a related-events grid slot — same footprint as RelatedEventCard, no details
+function RelatedEventAdCard({ ad, isMobile }) {
+  const [hovered, setHovered] = useState(false)
+  const content = (
+    <div onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+      style={{ width: '100%', borderRadius: isMobile ? '12px' : '16px', overflow: 'hidden', cursor: ad.link ? 'pointer' : 'default', boxShadow: hovered ? '0 8px 24px rgba(0,0,0,0.15)' : '0 2px 8px rgba(0,0,0,0.08)', transition: 'all 0.3s ease', transform: hovered ? 'translateY(-4px)' : 'translateY(0)', backgroundColor: '#F3F3F4', position: 'relative', height: isMobile ? '150px' : '240px', marginBottom: isMobile ? 0 : '24px' }}>
+      {ad.type === 'video'
+        ? <video src={ad.src} style={{ width: '100%', height: '100%', objectFit: 'cover' }} autoPlay loop muted playsInline />
+        : <img src={ad.src} alt="Advertisement" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+      }
+      <span style={{ position: 'absolute', top: '10px', left: '10px', fontSize: '10px', fontWeight: '600', color: '#FFFFFF', backgroundColor: 'rgba(0,0,0,0.55)', padding: '3px 10px', borderRadius: '9999px', letterSpacing: '0.3px' }}>
+        Ad
+      </span>
+    </div>
+  )
+  if (ad.link) return <a href={ad.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'block' }}>{content}</a>
+  return content
+}
+
+// Inserts an ad after every 8 related events
+function buildRelatedEventItemsWithAds(items, ads) {
+  if (!ads || ads.length === 0) return items.map((it) => ({ kind: 'event', data: it }))
+  const out = []
+  let adIndex = 0
+  items.forEach((it, i) => {
+    out.push({ kind: 'event', data: it })
+    if ((i + 1) % 8 === 0) {
+      out.push({ kind: 'ad', data: ads[adIndex % ads.length] })
+      adIndex += 1
+    }
+  })
+  return out
+}
+
 function EventDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
   const { user } = useAuth()
   const isMobile = useIsMobile()
+  const { ads: relatedGridAds } = useAds('event_detail', 'related_grid')
 
   const [event, setEvent] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -292,26 +330,25 @@ function EventDetail() {
   }
 
   const ev = event
+  const relatedItemsWithAds = buildRelatedEventItemsWithAds(relatedEvents, relatedGridAds)
   const columns = [[], [], [], []]
-  relatedEvents.forEach((e, i) => columns[i % 4].push(e))
+  relatedItemsWithAds.forEach((item, i) => columns[i % 4].push(item))
 
   return (
     <div style={{ backgroundColor: '#FFFFFF' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto' }}><Navbar /></div>
 
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: isMobile ? '16px 16px 40px' : '32px 80px 80px 80px' }}>
-        {!isMobile && <BackButton />}
+        {!isMobile && <BackButton isMobile={isMobile} />}
 
         {isMobile ? (
           <>
             {/* ── MOBILE LAYOUT ── */}
 
-            {/* Flyer image */}
             <div style={{ width: '100%', borderRadius: '16px', overflow: 'hidden', backgroundColor: '#F3F3F4' }}>
               <img src={ev.image_url || 'https://picsum.photos/seed/' + ev.id + '/514/600'} alt={ev.title} style={{ width: '100%', display: 'block', objectFit: 'cover' }} />
             </div>
 
-            {/* Icon row: download / share / save ... heart+count */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '14px 4px' }}>
               <button onClick={handleDownloadFlyer} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#414143" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
@@ -333,7 +370,6 @@ function EventDetail() {
               <p style={{ fontSize: '12px', color: '#2E7D32', margin: '0 0 8px' }}>{copiedToast}</p>
             )}
 
-            {/* Organizer */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '4px 4px 12px' }}>
               <UserAvatar avatarUrl={ev.organizer_avatar} name={ev.organizer_name} size={40} />
               <div>
@@ -342,14 +378,12 @@ function EventDetail() {
               </div>
             </div>
 
-            {/* Title + description */}
             <div style={{ padding: '0 4px' }}>
               <h4 style={{ fontSize: '20px', lineHeight: '26px', fontWeight: '700', color: '#141415', marginBottom: '10px' }}>{ev.title}</h4>
               {ev.description && (
                 <p style={{ fontSize: '14px', lineHeight: '21px', color: '#59595C', marginBottom: '16px', whiteSpace: 'pre-line' }}>{ev.description}</p>
               )}
 
-              {/* Meta row */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 16px', marginBottom: '18px' }}>
                 {[
                   { icon: '📍', label: ev.venue_type === 'online' ? 'Online Event' : ev.venue_type === 'both' ? (ev.location || 'Physical') + ' + Online' : ev.location || 'Location TBD' },
@@ -372,7 +406,6 @@ function EventDetail() {
                 </div>
               )}
 
-              {/* Registration Link */}
               {ev.registration_link && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', borderRadius: '8px', border: '1px solid #E8E8EA', backgroundColor: '#F9F9F9', marginBottom: '10px', flexWrap: 'wrap' }}>
                   <span style={{ fontSize: '10px', color: '#B88700', backgroundColor: '#FFF6DE', border: '1px solid #FED86E', borderRadius: '9999px', padding: '2px 8px', whiteSpace: 'nowrap', fontWeight: '500' }}>Registration Link</span>
@@ -381,7 +414,6 @@ function EventDetail() {
                 </div>
               )}
 
-              {/* Event Venue box */}
               {ev.location && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', borderRadius: '8px', border: '1px solid #E8E8EA', backgroundColor: '#F9F9F9', marginBottom: '20px', flexWrap: 'wrap' }}>
                   <span style={{ fontSize: '10px', color: '#0097FF', backgroundColor: '#EFF9FF', border: '1px solid #0097FF', borderRadius: '9999px', padding: '2px 8px', whiteSpace: 'nowrap', fontWeight: '500' }}>Event Venue</span>
@@ -390,7 +422,6 @@ function EventDetail() {
                 </div>
               )}
 
-              {/* Comment box */}
               <div style={{ border: '1px solid #E8E8EA', borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
                 <h5 style={{ fontSize: '16px', fontWeight: '700', color: '#141415', marginBottom: '2px' }}>Comment</h5>
                 <p style={{ fontSize: '12px', color: '#7E7E82', marginBottom: '14px' }}>Drop a comment and tell us how you feel</p>
@@ -578,10 +609,18 @@ function EventDetail() {
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: isMobile ? '14px' : '24px', alignItems: 'start' }}>
             {isMobile
-              ? relatedEvents.map((e) => <RelatedEventCard key={e.id} event={e} isMobile={isMobile} />)
+              ? relatedItemsWithAds.map((item, idx) =>
+                  item.kind === 'ad'
+                    ? <RelatedEventAdCard key={'ad-' + idx} ad={item.data} isMobile={isMobile} />
+                    : <RelatedEventCard key={item.data.id} event={item.data} isMobile={isMobile} />
+                )
               : columns.map((col, colIndex) => (
                   <div key={colIndex}>
-                    {col.map((e) => <RelatedEventCard key={e.id} event={e} isMobile={isMobile} />)}
+                    {col.map((item, idx) =>
+                      item.kind === 'ad'
+                        ? <RelatedEventAdCard key={'ad-' + colIndex + '-' + idx} ad={item.data} isMobile={isMobile} />
+                        : <RelatedEventCard key={item.data.id} event={item.data} isMobile={isMobile} />
+                    )}
                   </div>
                 ))
             }
