@@ -5,6 +5,7 @@ import Footer from '../components/Footer'
 import { supabase } from '../supabaseClient'
 import { useIsMobile } from '../hooks/useIsMobile'
 import advertImg from '../assets/subscribe-card1.png'
+import { useAds } from '../hooks/useAds'
 
 const memeCategories = [
   { label: 'All Memes', icon: '😂' },
@@ -28,10 +29,6 @@ const bannerMemes = [
   'https://picsum.photos/seed/memebanner3/155/182',
 ]
 
-// ── Ad shown every 8 memes ──
-const gridAds = [
-  { id: 'meme-listing-ad-1', src: advertImg, type: 'image', link: '' },
-]
 
 function isVideoFile(src) { return /\.(mp4|webm|mov)$/i.test(src || '') }
 function AdMedia({ src, type, style, alt }) {
@@ -243,6 +240,7 @@ function buildMemeItemsWithAds(memes, ads) {
 function Memes() {
   const location = useLocation()
   const isMobile = useIsMobile()
+  const { ads: gridAds } = useAds('meme_list', 'grid')
   const [category, setCategory] = useState(location.state?.category || 'All Memes')
   const [memes, setMemes] = useState([])
   const [loading, setLoading] = useState(true)

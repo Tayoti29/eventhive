@@ -10,24 +10,15 @@ import advertImg2 from '../assets/subscribe-card1.png'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../supabaseClient'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { useAds } from '../hooks/useAds'
 
 function isValidUUID(id) {
   return id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(id))
 }
 
-const sidebarAds = [
-  { id: 'sidebar-ad-1', src: advertImg, type: 'image', link: '' },
-  { id: 'sidebar-ad-2', src: advertImg2, type: 'image', link: '' },
-]
-
-// Ad(s) shown between the end of the story and the Category section (mobile)
-const inlineStoryAds = [
-  { id: 'inline-story-ad-1', src: advertImg, type: 'image', link: '' },
-]
-
-const relatedGridAds = [
-  { id: 'grid-ad-1', src: advertImg, type: 'image', link: '' },
-]
+const { ads: sidebarAds } = useAds('blog_detail', 'sidebar')
+const { ads: inlineStoryAds } = useAds('blog_detail', 'inline_story')
+const { ads: relatedGridAds } = useAds('blog_detail', 'related_grid')
 
 function isVideoFile(src) {
   return /\.(mp4|webm|mov)$/i.test(src || '')

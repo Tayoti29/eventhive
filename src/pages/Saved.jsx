@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext'
 import { useIsMobile } from '../hooks/useIsMobile'
 import advertImg from '../assets/subscribe-card1.png'
 import advertImg2 from '../assets/subscribe-card1.png'
+import { useAds } from '../hooks/useAds'
 
 const tabConfig = [
   { key: 'all', label: 'All', color: '#0097FF', bg: '#EFF9FF' },
@@ -17,11 +18,6 @@ const tabConfig = [
   { key: 'blog', label: 'Blogs', color: '#B88700', bg: '#FFFCF4' },
 ]
 
-const sidebarAds = [
-  { id: 'saved-sidebar-ad-1', src: advertImg, link: '' },
-  { id: 'saved-sidebar-ad-2', src: advertImg2, link: '' },
-]
-const gridAds = [{ id: 'saved-grid-ad-1', src: advertImg, link: '' }]
 
 function AdCard({ ad, isMobile }) {
   const [hovered, setHovered] = useState(false)
@@ -61,6 +57,8 @@ function Saved() {
   const location = useLocation()
   const { user } = useAuth()
   const isMobile = useIsMobile()
+  const { ads: sidebarAds } = useAds('saved', 'sidebar')
+  const { ads: gridAds } = useAds('saved', 'grid')
   const { savedBoxes, removeFromBox, deleteBox } = useSave()
   const [activeTab, setActiveTab] = useState('all')
   const [deleteTarget, setDeleteTarget] = useState(null)

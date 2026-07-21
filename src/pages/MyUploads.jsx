@@ -7,12 +7,8 @@ import { supabase } from '../supabaseClient'
 import { useIsMobile } from '../hooks/useIsMobile'
 import advertImg from '../assets/subscribe-card1.png'
 import advertImg2 from '../assets/subscribe-card1.png'
+import { useAds } from '../hooks/useAds'
 
-const sidebarAds = [
-  { id: 'uploads-sidebar-ad-1', src: advertImg, link: '' },
-  { id: 'uploads-sidebar-ad-2', src: advertImg2, link: '' },
-]
-const gridAds = [{ id: 'uploads-grid-ad-1', src: advertImg, link: '' }]
 
 function AdCard({ ad, isMobile }) {
   const [hovered, setHovered] = useState(false)
@@ -75,6 +71,7 @@ function MyUploads() {
   const location = useLocation()
   const { user } = useAuth()
   const isMobile = useIsMobile()
+  const { ads: gridAds } = useAds('my_uploads', 'grid')
 
   const defaultTab = location.state?.activeTab || 'events'
   const [activeTab, setActiveTab] = useState(defaultTab)

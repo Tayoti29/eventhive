@@ -6,6 +6,7 @@ import SubscribeSection from '../components/SubscribeSection'
 import { supabase } from '../supabaseClient'
 import { useIsMobile } from '../hooks/useIsMobile'
 import advertImg from '../assets/subscribe-card1.png'
+import { useAds } from '../hooks/useAds'
 
 const blogCategories = [
   { label: 'All Blogs', icon: '📖' },
@@ -27,11 +28,6 @@ const bannerImages = [
   'https://picsum.photos/seed/blogbanner1/155/182',
   'https://picsum.photos/seed/blogbanner2/155/182',
   'https://picsum.photos/seed/blogbanner3/155/182',
-]
-
-// ── Ad card config — this is what's shown every 8 blogs ──
-const gridAds = [
-  { id: 'blog-grid-ad-1', src: advertImg, type: 'image', link: '' },
 ]
 
 function isVideoFile(src) { return /\.(mp4|webm|mov)$/i.test(src || '') }
@@ -266,6 +262,7 @@ function buildBlogItemsWithAds(blogs, ads) {
 function Blog() {
   const location = useLocation()
   const isMobile = useIsMobile()
+  const { ads: gridAds } = useAds('blog_list', 'grid')
   const [category, setCategory] = useState(location.state?.category || 'All Blogs')
   const [blogs, setBlogs] = useState([])
   const [loading, setLoading] = useState(true)

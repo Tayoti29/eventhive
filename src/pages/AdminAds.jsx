@@ -153,7 +153,7 @@ function AdminAds() {
               }}
               style={{ ...inputStyle, cursor: 'pointer' }}>
               {placements.map((p) => (
-                <option key={p.page + p.slot} value={p.page + '|' + p.slot}>{p.label}</option>
+                <option key={p.page + p.slot} value={p.page + '|' + p.slot}>{p.label} — {p.size}px</option>
               ))}
             </select>
             <p style={{ fontSize: '12px', color: '#A5A5AA', marginTop: '6px' }}>Recommended size: {selectedPlacement.size}px — images, GIFs, and silent videos are supported (max 15MB)</p>
