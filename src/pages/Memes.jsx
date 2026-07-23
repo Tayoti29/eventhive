@@ -4,19 +4,12 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { supabase } from '../supabaseClient'
 import { useIsMobile } from '../hooks/useIsMobile'
-import advertImg from '../assets/subscribe-card1.png'
 import { useAds } from '../hooks/useAds'
 
 const memeCategories = [
-  { label: 'All Memes', icon: '😂' },
-  { label: 'Funny', icon: '🤣' },
-  { label: 'Relatable', icon: '😅' },
-  { label: 'Motivational', icon: '💪' },
-  { label: 'Naija', icon: '🇳🇬' },
-  { label: 'Couple Goals', icon: '❤️' },
-  { label: 'Work Life', icon: '💼' },
-  { label: 'School', icon: '📚' },
-  { label: 'Politics', icon: '🏛️' },
+  { label: 'All Memes', icon: '😂' }, { label: 'Funny', icon: '🤣' }, { label: 'Relatable', icon: '😅' },
+  { label: 'Motivational', icon: '💪' }, { label: 'Naija', icon: '🇳🇬' }, { label: 'Couple Goals', icon: '❤️' },
+  { label: 'Work Life', icon: '💼' }, { label: 'School', icon: '📚' }, { label: 'Politics', icon: '🏛️' },
   { label: 'Sports', icon: '⚽' },
 ]
 
@@ -28,7 +21,6 @@ const bannerMemes = [
   'https://picsum.photos/seed/memebanner2/155/182',
   'https://picsum.photos/seed/memebanner3/155/182',
 ]
-
 
 function isVideoFile(src) { return /\.(mp4|webm|mov)$/i.test(src || '') }
 function AdMedia({ src, type, style, alt }) {
@@ -129,9 +121,7 @@ function MemeTabs({ category, onCategoryChange, isMobile }) {
                 return (
                   <div key={cat.label}
                     onClick={() => { onCategoryChange(cat.label); setShowFlyout(false) }}
-                    style={{ width: '100%', height: '40px', display: 'flex', alignItems: 'center', gap: '8px', padding: '0 8px', borderRadius: '8px', cursor: 'pointer', backgroundColor: isSelected ? '#F3F3F4' : 'transparent', marginBottom: '4px' }}
-                    onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = '#F9F9F9' }}
-                    onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent' }}>
+                    style={{ width: '100%', height: '40px', display: 'flex', alignItems: 'center', gap: '8px', padding: '0 8px', borderRadius: '8px', cursor: 'pointer', backgroundColor: isSelected ? '#F3F3F4' : 'transparent', marginBottom: '4px' }}>
                     <span style={{ fontSize: '16px' }}>{cat.icon}</span>
                     <span style={{ fontSize: '14px', color: isSelected ? '#141415' : '#59595C', fontWeight: isSelected ? '500' : '400' }}>{cat.label}</span>
                   </div>
@@ -205,7 +195,6 @@ function MemeCard({ meme, index, isMobile }) {
   )
 }
 
-// Ad card — same footprint as a meme card slot, replaces one every 8 memes
 function MemeAdCard({ ad, isMobile }) {
   const [hovered, setHovered] = useState(false)
   const h = isMobile ? 175 : 300
@@ -213,7 +202,7 @@ function MemeAdCard({ ad, isMobile }) {
     <div onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       style={{ width: '100%', borderRadius: isMobile ? '12px' : '16px', overflow: 'hidden', cursor: ad.link ? 'pointer' : 'default', boxShadow: hovered ? '0 8px 24px rgba(0,0,0,0.15)' : '0 2px 8px rgba(0,0,0,0.08)', transition: 'all 0.3s ease', transform: hovered ? 'translateY(-4px)' : 'translateY(0)', backgroundColor: '#F3F3F4', position: 'relative', height: h + 'px', marginBottom: isMobile ? '0' : '24px' }}>
       <AdMedia src={ad.src} type={ad.type} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-      <span style={{ position: 'absolute', top: '10px', left: '10px', fontSize: '10px', fontWeight: '600', color: '#FFFFFF', backgroundColor: 'rgba(0,0,0,0.55)', padding: '3px 10px', borderRadius: '9999px', letterSpacing: '0.3px' }}>
+      <span style={{ position: 'absolute', top: '10px', left: '10px', fontSize: '10px', fontWeight: '600', color: '#FFFFFF', backgroundColor: 'rgba(0,0,0,0.55)', padding: '3px 10px', borderRadius: '9999px' }}>
         Ad
       </span>
     </div>
@@ -222,7 +211,6 @@ function MemeAdCard({ ad, isMobile }) {
   return content
 }
 
-// Inserts an ad after every 8 memes (flat list, used before splitting into columns)
 function buildMemeItemsWithAds(memes, ads) {
   if (!ads || ads.length === 0) return memes.map((m, i) => ({ kind: 'meme', data: m, index: i }))
   const items = []

@@ -5,17 +5,17 @@ import Footer from '../components/Footer'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../supabaseClient'
 import { useIsMobile } from '../hooks/useIsMobile'
-import advertImg from '../assets/subscribe-card1.png'
-import advertImg2 from '../assets/subscribe-card1.png'
 import { useAds } from '../hooks/useAds'
-
 
 function AdCard({ ad, isMobile }) {
   const [hovered, setHovered] = useState(false)
   const content = (
     <div onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       style={{ borderRadius: '16px', overflow: 'hidden', boxShadow: hovered ? '0 8px 24px rgba(0,0,0,0.12)' : '0 2px 8px rgba(0,0,0,0.06)', transition: 'all 0.3s ease', transform: hovered ? 'translateY(-4px)' : 'translateY(0)', backgroundColor: '#F3F3F4', position: 'relative', height: isMobile ? '180px' : '200px', cursor: ad.link ? 'pointer' : 'default' }}>
-      <img src={ad.src} alt="Advertisement" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+      {ad.type === 'video'
+        ? <video src={ad.src} style={{ width: '100%', height: '100%', objectFit: 'cover' }} autoPlay loop muted playsInline />
+        : <img src={ad.src} alt="Advertisement" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+      }
       <span style={{ position: 'absolute', top: '10px', left: '10px', fontSize: '10px', fontWeight: '600', color: '#FFFFFF', backgroundColor: 'rgba(0,0,0,0.55)', padding: '3px 10px', borderRadius: '9999px' }}>Ad</span>
     </div>
   )
@@ -26,7 +26,10 @@ function AdCard({ ad, isMobile }) {
 function SidebarAdCard({ ad }) {
   return (
     <div style={{ width: '100%', borderRadius: '12px', overflow: 'hidden', position: 'relative', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-      <img src={ad.src} alt="Advertisement" style={{ width: '100%', height: '292px', objectFit: 'cover', display: 'block' }} />
+      {ad.type === 'video'
+        ? <video src={ad.src} style={{ width: '100%', height: '292px', objectFit: 'cover' }} autoPlay loop muted playsInline />
+        : <img src={ad.src} alt="Advertisement" style={{ width: '100%', height: '292px', objectFit: 'cover', display: 'block' }} />
+      }
       <span style={{ position: 'absolute', top: '10px', left: '10px', fontSize: '10px', fontWeight: '600', color: '#FFFFFF', backgroundColor: 'rgba(0,0,0,0.55)', padding: '3px 10px', borderRadius: '9999px' }}>Ad</span>
     </div>
   )
@@ -71,6 +74,7 @@ function MyUploads() {
   const location = useLocation()
   const { user } = useAuth()
   const isMobile = useIsMobile()
+  const { ads: sidebarAds } = useAds('my_uploads', 'sidebar')
   const { ads: gridAds } = useAds('my_uploads', 'grid')
 
   const defaultTab = location.state?.activeTab || 'events'

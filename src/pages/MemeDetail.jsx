@@ -4,8 +4,6 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import SubscribeSection from '../components/SubscribeSection'
 import SaveButton from '../components/SaveButton'
-import advertImg from '../assets/subscribe-card1.png'
-import advertImg2 from '../assets/subscribe-card1.png'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../supabaseClient'
 import { useIsMobile } from '../hooks/useIsMobile'
@@ -15,11 +13,8 @@ function isValidUUID(id) {
   return id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(id))
 }
 
-function isVideoFile(src) { return /\.(mp4|webm|mov)$/i.test(src || '') }
-
 function AdMedia({ src, type, style, alt }) {
-  const isVideo = type === 'video' || isVideoFile(src)
-  if (isVideo) return <video src={src} style={style} autoPlay loop muted playsInline />
+  if (type === 'video') return <video src={src} style={style} autoPlay loop muted playsInline />
   return <img src={src} alt={alt || 'Advertisement'} style={style} />
 }
 
@@ -29,7 +24,7 @@ function SidebarAdCard({ ad, height }) {
     <div onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       style={{ width: '292px', height: (height || 292) + 'px', borderRadius: '12px', overflow: 'hidden', position: 'relative', boxShadow: hovered ? '0 8px 32px rgba(0,0,0,0.15)' : '0 2px 8px rgba(0,0,0,0.08)', transition: 'all 0.3s ease', transform: hovered ? 'scale(1.02)' : 'scale(1)', cursor: ad.link ? 'pointer' : 'default' }}>
       <AdMedia src={ad.src} type={ad.type} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-      <span style={{ position: 'absolute', top: '10px', left: '10px', fontSize: '10px', fontWeight: '600', color: '#FFFFFF', backgroundColor: 'rgba(0,0,0,0.55)', padding: '3px 10px', borderRadius: '9999px', letterSpacing: '0.3px' }}>
+      <span style={{ position: 'absolute', top: '10px', left: '10px', fontSize: '10px', fontWeight: '600', color: '#FFFFFF', backgroundColor: 'rgba(0,0,0,0.55)', padding: '3px 10px', borderRadius: '9999px' }}>
         Ad
       </span>
     </div>
@@ -44,7 +39,7 @@ function RelatedMemeAdCard({ ad, isMobile }) {
     <div onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       style={{ borderRadius: isMobile ? '10px' : '12px', overflow: 'hidden', cursor: ad.link ? 'pointer' : 'default', boxShadow: hovered ? '0 8px 24px rgba(0,0,0,0.15)' : '0 2px 8px rgba(0,0,0,0.08)', transition: 'all 0.3s ease', transform: hovered ? 'translateY(-4px)' : 'translateY(0)', backgroundColor: '#F3F3F4', position: 'relative', height: isMobile ? '150px' : '270px' }}>
       <AdMedia src={ad.src} type={ad.type} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-      <span style={{ position: 'absolute', top: '10px', left: '10px', fontSize: '10px', fontWeight: '600', color: '#FFFFFF', backgroundColor: 'rgba(0,0,0,0.55)', padding: '3px 10px', borderRadius: '9999px', letterSpacing: '0.3px' }}>
+      <span style={{ position: 'absolute', top: '10px', left: '10px', fontSize: '10px', fontWeight: '600', color: '#FFFFFF', backgroundColor: 'rgba(0,0,0,0.55)', padding: '3px 10px', borderRadius: '9999px' }}>
         Ad
       </span>
     </div>
@@ -53,13 +48,12 @@ function RelatedMemeAdCard({ ad, isMobile }) {
   return content
 }
 
-// Full-width ad banner between captions and Category (mobile)
 function InlineCaptionAd({ ad }) {
   return (
     <a href={ad.link || undefined} target={ad.link ? '_blank' : undefined} rel={ad.link ? 'noopener noreferrer' : undefined}
       style={{ display: 'block', textDecoration: 'none', position: 'relative', width: '100%', height: '130px', borderRadius: '12px', overflow: 'hidden', margin: '20px 0' }}>
       <AdMedia src={ad.src} type={ad.type} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-      <span style={{ position: 'absolute', top: '10px', left: '10px', fontSize: '10px', fontWeight: '600', color: '#FFFFFF', backgroundColor: 'rgba(0,0,0,0.55)', padding: '3px 10px', borderRadius: '9999px', letterSpacing: '0.3px' }}>
+      <span style={{ position: 'absolute', top: '10px', left: '10px', fontSize: '10px', fontWeight: '600', color: '#FFFFFF', backgroundColor: 'rgba(0,0,0,0.55)', padding: '3px 10px', borderRadius: '9999px' }}>
         Ad
       </span>
     </a>
@@ -122,8 +116,6 @@ function IconButton({ icon, hoverText, onClick, isMobile }) {
   )
 }
 
-// Caption is always copiable — on desktop the copy button shows on hover (as before),
-// on mobile it's always visible since there's no hover state on touch.
 function CaptionItem({ caption, isMobile }) {
   const [hovered, setHovered] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -242,7 +234,6 @@ function SocialShareButton({ label, bg, onClick, icon }) {
   )
 }
 
-// Popups now get 24px margin left/right on mobile instead of touching screen edges
 function ShareModal({ shareUrl, shareTitle, onClose, isMobile }) {
   const [copied, setCopied] = useState(false)
 
@@ -268,7 +259,7 @@ function ShareModal({ shareUrl, shareTitle, onClose, isMobile }) {
   return (
     <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '0 24px' : 0 }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
-      <div style={{ width: isMobile ? '100%' : '440px', maxWidth: isMobile ? 'calc(100% - 0px)' : '440px', backgroundColor: '#FFFFFF', borderRadius: '16px', padding: isMobile ? '24px' : '32px', position: 'relative', boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
+      <div style={{ width: isMobile ? '100%' : '440px', backgroundColor: '#FFFFFF', borderRadius: '16px', padding: isMobile ? '24px' : '32px', position: 'relative', boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
         <button onClick={onClose} style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: '#7E7E82' }}>✕</button>
         <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#141415', marginBottom: '8px' }}>Share this Meme</h3>
         <p style={{ fontSize: '14px', color: '#7E7E82', marginBottom: '20px' }}>Copy the link below or share directly</p>
@@ -326,6 +317,7 @@ function MemeDetail() {
   const location = useLocation()
   const { user } = useAuth()
   const isMobile = useIsMobile()
+
   const { ads: sidebarAds } = useAds('meme_detail', 'sidebar')
   const { ads: inlineCaptionAds } = useAds('meme_detail', 'inline_caption')
   const { ads: relatedGridAds } = useAds('meme_detail', 'related_grid')
@@ -466,7 +458,6 @@ function MemeDetail() {
 
         {isMobile ? (
           <>
-            {/* ── MOBILE LAYOUT ── */}
             <div style={{ marginTop: '18px', marginBottom: '14px' }}>
               {m.title && <h1 style={{ fontSize: '22px', lineHeight: '28px', fontWeight: '700', color: '#141415', marginBottom: '8px' }}>{m.title}</h1>}
               <p style={{ fontSize: '11px', color: '#A5A5AA', margin: 0 }}>
@@ -474,7 +465,6 @@ function MemeDetail() {
               </p>
             </div>
 
-            {/* Icon row */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '4px 0 16px' }}>
               <button onClick={() => { if (!liked) { setLiked(true); setLikes(likes + 1) } }} style={{ background: 'none', border: 'none', cursor: liked ? 'default' : 'pointer', padding: 0 }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill={liked ? '#D90870' : 'none'} stroke="#D90870" strokeWidth="2">
@@ -491,12 +481,10 @@ function MemeDetail() {
               <SaveButton item={{ id: m.id, type: 'meme', title: m.title || (m.caption ? m.caption.slice(0, 40) : 'Meme'), image: m.image_url }} />
             </div>
 
-            {/* Meme image */}
             <div style={{ width: '100%', minHeight: '200px', maxHeight: '380px', borderRadius: '12px', backgroundColor: '#141415', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
               <img src={m.image_url} alt={m.title} style={{ maxWidth: '100%', maxHeight: '380px', objectFit: 'contain', display: 'block' }} />
             </div>
 
-            {/* Uploader */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
               <UserAvatar avatarUrl={m.uploader_avatar} name={m.uploader_name} size={32} />
               <div>
@@ -505,7 +493,6 @@ function MemeDetail() {
               </div>
             </div>
 
-            {/* Meta */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 16px', paddingBottom: '16px', borderBottom: '1px solid #E8E8EA', marginBottom: '20px' }}>
               {[
                 { icon: '👁️', label: (m.views || 0).toLocaleString() + ' Views' },
@@ -519,7 +506,6 @@ function MemeDetail() {
               ))}
             </div>
 
-            {/* Suggested Captions */}
             <h3 style={{ fontSize: '20px', lineHeight: '26px', fontWeight: '700', color: '#141415', marginBottom: '14px' }}>Suggested Captions</h3>
             {displayCaptions.length === 0 && (
               <p style={{ fontSize: '13px', color: '#A5A5AA', marginBottom: '14px' }}>No captions yet. Be the first to add one!</p>
@@ -545,10 +531,8 @@ function MemeDetail() {
               )}
             </div>
 
-            {/* Ad banner — between captions and Category */}
             {inlineCaptionAds.length > 0 && <InlineCaptionAd ad={inlineCaptionAds[0]} />}
 
-            {/* Category */}
             <div style={{ marginBottom: '28px' }}>
               <p style={{ fontSize: '14px', fontWeight: '600', color: '#59595C', marginBottom: '10px' }}>
                 Category: <span style={{ color: '#0097FF' }}>{m.category}</span>
@@ -566,7 +550,6 @@ function MemeDetail() {
               </div>
             </div>
 
-            {/* Related Memes */}
             {relatedMemes.length > 0 && (
               <div style={{ marginBottom: '32px' }}>
                 <h3 style={{ fontSize: '22px', lineHeight: '28px', fontWeight: '700', color: '#141415', marginBottom: '16px' }}>Related Memes</h3>
@@ -586,7 +569,6 @@ function MemeDetail() {
           </>
         ) : (
           <>
-            {/* ── DESKTOP LAYOUT (unchanged) ── */}
             <div style={{ display: 'flex', gap: '48px', marginTop: '32px', alignItems: 'flex-start' }}>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>

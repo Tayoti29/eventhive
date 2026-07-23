@@ -5,22 +5,13 @@ import Footer from '../components/Footer'
 import SubscribeSection from '../components/SubscribeSection'
 import { supabase } from '../supabaseClient'
 import { useIsMobile } from '../hooks/useIsMobile'
-import advertImg from '../assets/subscribe-card1.png'
 import { useAds } from '../hooks/useAds'
 
 const blogCategories = [
-  { label: 'All Blogs', icon: '📖' },
-  { label: 'Events', icon: '📅' },
-  { label: 'Music', icon: '🎵' },
-  { label: 'Tech', icon: '💻' },
-  { label: 'Lifestyle', icon: '✨' },
-  { label: 'Business', icon: '💼' },
-  { label: 'Health', icon: '❤️' },
-  { label: 'Travel', icon: '✈️' },
-  { label: 'Food', icon: '🍔' },
-  { label: 'Entertainment', icon: '🎬' },
-  { label: 'Sports', icon: '⚽' },
-  { label: 'Fashion', icon: '👗' },
+  { label: 'All Blogs', icon: '📖' }, { label: 'Events', icon: '📅' }, { label: 'Music', icon: '🎵' },
+  { label: 'Tech', icon: '💻' }, { label: 'Lifestyle', icon: '✨' }, { label: 'Business', icon: '💼' },
+  { label: 'Health', icon: '❤️' }, { label: 'Travel', icon: '✈️' }, { label: 'Food', icon: '🍔' },
+  { label: 'Entertainment', icon: '🎬' }, { label: 'Sports', icon: '⚽' }, { label: 'Fashion', icon: '👗' },
   { label: 'Education', icon: '📚' },
 ]
 
@@ -30,16 +21,13 @@ const bannerImages = [
   'https://picsum.photos/seed/blogbanner3/155/182',
 ]
 
-function isVideoFile(src) { return /\.(mp4|webm|mov)$/i.test(src || '') }
-
-function AdMedia({ src, type, style, alt }) {
-  const isVideo = type === 'video' || isVideoFile(src)
-  if (isVideo) return <video src={src} style={style} autoPlay loop muted playsInline />
-  return <img src={src} alt={alt || 'Advertisement'} style={style} />
-}
-
 function isValidUUID(id) {
   return id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(id))
+}
+
+function AdMedia({ src, type, style, alt }) {
+  if (type === 'video') return <video src={src} style={style} autoPlay loop muted playsInline />
+  return <img src={src} alt={alt || 'Advertisement'} style={style} />
 }
 
 function UserAvatar({ avatarUrl, name, size }) {
@@ -130,9 +118,7 @@ function BlogTabs({ category, onCategoryChange, isMobile }) {
                 return (
                   <div key={cat.label}
                     onClick={() => { onCategoryChange(cat.label); setShowFlyout(false) }}
-                    style={{ height: '40px', display: 'flex', alignItems: 'center', gap: '8px', padding: '0 8px', borderRadius: '8px', cursor: 'pointer', backgroundColor: isSelected ? '#F3F3F4' : 'transparent', marginBottom: '4px' }}
-                    onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = '#F9F9F9' }}
-                    onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent' }}>
+                    style={{ height: '40px', display: 'flex', alignItems: 'center', gap: '8px', padding: '0 8px', borderRadius: '8px', cursor: 'pointer', backgroundColor: isSelected ? '#F3F3F4' : 'transparent', marginBottom: '4px' }}>
                     <span style={{ fontSize: '16px' }}>{cat.icon}</span>
                     <span style={{ fontSize: '14px', color: isSelected ? '#141415' : '#59595C', fontWeight: isSelected ? '500' : '400' }}>{cat.label}</span>
                   </div>
@@ -223,7 +209,6 @@ function BlogCard({ blog, isMobile }) {
   )
 }
 
-// Ad card — same footprint as BlogCard, replaces a blog slot every 8 cards, no title/author
 function BlogAdCard({ ad, isMobile }) {
   const [hovered, setHovered] = useState(false)
   const content = (
@@ -235,7 +220,7 @@ function BlogAdCard({ ad, isMobile }) {
         backgroundColor: '#F3F3F4', position: 'relative', height: isMobile ? '190px' : '340px',
       }}>
       <AdMedia src={ad.src} type={ad.type} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-      <span style={{ position: 'absolute', top: '10px', left: '10px', fontSize: '10px', fontWeight: '600', color: '#FFFFFF', backgroundColor: 'rgba(0,0,0,0.55)', padding: '3px 10px', borderRadius: '9999px', letterSpacing: '0.3px' }}>
+      <span style={{ position: 'absolute', top: '10px', left: '10px', fontSize: '10px', fontWeight: '600', color: '#FFFFFF', backgroundColor: 'rgba(0,0,0,0.55)', padding: '3px 10px', borderRadius: '9999px' }}>
         Ad
       </span>
     </div>
@@ -244,7 +229,6 @@ function BlogAdCard({ ad, isMobile }) {
   return content
 }
 
-// Inserts an ad after every 8 blogs
 function buildBlogItemsWithAds(blogs, ads) {
   if (!ads || ads.length === 0) return blogs.map((b) => ({ kind: 'blog', data: b }))
   const items = []
@@ -332,7 +316,6 @@ function Blog() {
     <div style={{ backgroundColor: '#FFFFFF' }}>
       <div style={{ maxWidth: '1440px', margin: '0 auto' }}><Navbar /></div>
 
-      {/* Banner */}
       <section style={{ backgroundColor: '#FFFCF4', width: '100%' }}>
         <div style={{
           maxWidth: '1440px', margin: '0 auto',
@@ -351,14 +334,12 @@ function Blog() {
         </div>
       </section>
 
-      {/* Tabs */}
       <section style={{ width: '100%', backgroundColor: '#FFFFFF' }}>
         <div style={{ maxWidth: '1440px', margin: '0 auto', padding: isMobile ? '0 20px' : '0 100px' }}>
           <BlogTabs category={category} onCategoryChange={setCategory} isMobile={isMobile} />
         </div>
       </section>
 
-      {/* Grid */}
       <section style={{ maxWidth: '1440px', margin: '0 auto', padding: isMobile ? '24px 20px' : '48px 100px 80px' }}>
         {loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', padding: '80px 0' }}>
