@@ -5,8 +5,6 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import SubscribeSection from '../components/SubscribeSection'
 import SaveButton from '../components/SaveButton'
-import advertImg from '../assets/subscribe-card1.png'
-import advertImg2 from '../assets/subscribe-card1.png'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../supabaseClient'
 import { useIsMobile } from '../hooks/useIsMobile'
@@ -16,17 +14,8 @@ function isValidUUID(id) {
   return id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(id))
 }
 
-const { ads: sidebarAds } = useAds('blog_detail', 'sidebar')
-const { ads: inlineStoryAds } = useAds('blog_detail', 'inline_story')
-const { ads: relatedGridAds } = useAds('blog_detail', 'related_grid')
-
-function isVideoFile(src) {
-  return /\.(mp4|webm|mov)$/i.test(src || '')
-}
-
 function AdMedia({ src, type, style, alt }) {
-  const isVideo = type === 'video' || isVideoFile(src)
-  if (isVideo) {
+  if (type === 'video') {
     return <video src={src} style={style} autoPlay loop muted playsInline />
   }
   return <img src={src} alt={alt || 'Advertisement'} style={style} />
@@ -122,7 +111,6 @@ function RelatedAdCard({ ad, isMobile }) {
   return content
 }
 
-// Inserts an ad after every 8 related blog cards (was 10)
 function buildRelatedItemsWithAds(blogs, ads) {
   if (!ads || ads.length === 0) return blogs.map((b) => ({ kind: 'blog', data: b }))
   const items = []
@@ -137,7 +125,6 @@ function buildRelatedItemsWithAds(blogs, ads) {
   return items
 }
 
-// Full-width ad banner placed between the story content and the Category section
 function InlineStoryAd({ ad }) {
   return (
     <a href={ad.link || undefined} target={ad.link ? '_blank' : undefined} rel={ad.link ? 'noopener noreferrer' : undefined}
@@ -359,6 +346,10 @@ function BlogDetail() {
   const { user } = useAuth()
   const isMobile = useIsMobile()
 
+  const { ads: sidebarAds } = useAds('blog_detail', 'sidebar')
+  const { ads: inlineStoryAds } = useAds('blog_detail', 'inline_story')
+  const { ads: relatedGridAds } = useAds('blog_detail', 'related_grid')
+
   const [blog, setBlog] = useState(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
@@ -403,10 +394,6 @@ function BlogDetail() {
       navigator.clipboard.writeText(shareUrl)
       setShareCopied(true)
       setTimeout(() => setShareCopied(false), 2500)
-      return
-    }
-    if (isMobile && navigator.share && platform === 'native') {
-      navigator.share({ title: shareTitle, url: shareUrl }).catch(() => {})
       return
     }
     window.open(links[platform], '_blank', 'noopener,noreferrer')
@@ -472,7 +459,6 @@ function BlogDetail() {
 
         {isMobile ? (
           <>
-            {/* ── MOBILE LAYOUT ── */}
             <div style={{ marginTop: '18px', marginBottom: '16px' }}>
               <h1 style={{ fontSize: '24px', lineHeight: '30px', fontWeight: '700', color: '#141415', marginBottom: '10px' }}>{b.title}</h1>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
@@ -487,7 +473,6 @@ function BlogDetail() {
               </div>
             </div>
 
-            {/* Icon row */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '4px 0 16px' }}>
               <button onClick={() => { if (!liked) { setLiked(true); setLikes(likes + 1) } }}
                 style={{ background: 'none', border: 'none', cursor: liked ? 'default' : 'pointer', padding: 0 }}>
@@ -505,12 +490,10 @@ function BlogDetail() {
               <SaveButton item={{ id: b.id, type: 'blog', title: b.title, image: b.cover_image_url }} />
             </div>
 
-            {/* Cover image */}
             <div style={{ width: '100%', borderRadius: '12px', overflow: 'hidden', marginBottom: '20px', backgroundColor: '#141415' }}>
               <img src={b.cover_image_url || 'https://picsum.photos/seed/' + b.id + '/842/540'} alt={b.title} style={{ width: '100%', maxHeight: '220px', objectFit: 'cover', display: 'block' }} />
             </div>
 
-            {/* Content */}
             <div>
               {contentSections.map((section, i) => (
                 <div key={i} style={{ marginBottom: '22px' }}>
@@ -529,7 +512,6 @@ function BlogDetail() {
                 </div>
               )}
 
-              {/* Bottom icon row — matches image (heart, download, share, bookmark) */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '20px 0 4px' }}>
                 <button onClick={() => { if (!liked) { setLiked(true); setLikes(likes + 1) } }}
                   style={{ background: 'none', border: 'none', cursor: liked ? 'default' : 'pointer', padding: 0 }}>
@@ -546,10 +528,8 @@ function BlogDetail() {
                 <SaveButton item={{ id: b.id, type: 'blog', title: b.title, image: b.cover_image_url }} />
               </div>
 
-              {/* Ad banner — between end of story and Category */}
               {inlineStoryAds.length > 0 && <InlineStoryAd ad={inlineStoryAds[0]} />}
 
-              {/* Category */}
               <div style={{ marginTop: '4px', marginBottom: '28px' }}>
                 <p style={{ fontSize: '14px', fontWeight: '600', color: '#59595C', marginBottom: '10px' }}>
                   Category: <span style={{ color: '#0097FF' }}>{b.category}</span>
@@ -568,7 +548,6 @@ function BlogDetail() {
               </div>
             </div>
 
-            {/* Related Blogs — 2 column grid with ads every 8 */}
             {relatedBlogs.length > 0 && (
               <div style={{ marginBottom: '32px' }}>
                 <h3 style={{ fontSize: '22px', lineHeight: '28px', fontWeight: '700', color: '#141415', marginBottom: '16px' }}>Related Blogs</h3>
@@ -588,7 +567,6 @@ function BlogDetail() {
           </>
         ) : (
           <>
-            {/* ── DESKTOP LAYOUT (unchanged) ── */}
             <div style={{ marginTop: '24px', marginBottom: '24px', maxWidth: '860px' }}>
               {b.category && (
                 <span style={{ fontSize: '13px', fontWeight: '600', color: '#0097FF', backgroundColor: '#EFF9FF', padding: '4px 14px', borderRadius: '9999px', display: 'inline-block', marginBottom: '16px' }}>{b.category}</span>
@@ -752,9 +730,9 @@ function BlogDetail() {
       <div style={{ maxWidth: '1440px', margin: '0 auto' }}><Footer /></div>
 
       {showShareModal && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '0 24px' : 0 }}
           onClick={(e) => { if (e.target === e.currentTarget) setShowShareModal(false) }}>
-          <div style={{ width: isMobile ? '92%' : '440px', backgroundColor: '#FFFFFF', borderRadius: '16px', padding: isMobile ? '24px' : '32px', position: 'relative', boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
+          <div style={{ width: isMobile ? '100%' : '440px', backgroundColor: '#FFFFFF', borderRadius: '16px', padding: isMobile ? '24px' : '32px', position: 'relative', boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
             <button onClick={() => setShowShareModal(false)} style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: '#7E7E82' }}>✕</button>
             <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#141415', marginBottom: '8px' }}>Share this Blog</h3>
             <p style={{ fontSize: '14px', color: '#7E7E82', marginBottom: '20px' }}>Copy the link below or share directly</p>
@@ -768,21 +746,29 @@ function BlogDetail() {
             <p style={{ fontSize: '12px', fontWeight: '600', color: '#A5A5AA', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '14px' }}>Or share via</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px 8px' }}>
               <SocialShareButton label="WhatsApp" bg="#25D366" onClick={() => handleSocialShare('whatsapp')}
-                icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.28-1.38a9.87 9.87 0 0 0 4.71 1.2h.01c5.46 0 9.9-4.45 9.9-9.91S17.5 2 12.04 2zm5.8 14.13c-.24.68-1.4 1.3-1.93 1.38-.5.08-1.12.11-1.81-.11-.42-.13-.95-.31-1.64-.6-2.88-1.24-4.76-4.14-4.9-4.34-.14-.19-1.17-1.56-1.17-2.97 0-1.41.74-2.11 1-2.4.26-.29.57-.36.76-.36.19 0 .38 0 .55.01.18.01.41-.07.64.49.24.57.81 1.98.88 2.12.07.14.12.31.02.5-.1.19-.15.31-.29.48-.14.17-.3.37-.43.5-.14.14-.29.29-.13.57.17.28.75 1.24 1.61 2.01 1.11.99 2.04 1.3 2.32 1.44.28.14.44.12.6-.07.17-.19.71-.83.9-1.11.19-.28.38-.24.64-.14.26.1 1.65.78 1.94.92.28.14.47.21.54.33.07.12.07.68-.17 1.36z"/></svg>} />
+                icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.28-1.38a9.87 9.87 0 0 0 4.71 1.2h.01c5.46 0 9.9-4.45 9.9-9.91S17.5 2 12.04 2zm5.8 14.13c-.24.68-1.4 1.3-1.93 1.38-.5.08-1.12.11-1.81-.11-.42-.13-.95-.31-1.64-.6-2.88-1.24-4.76-4.14-4.9-4.34-.14-.19-1.17-1.56-1.17-2.97 0-1.41.74-2.11 1-2.4.26-.29.57-.36.76-.36.19 0 .38 0 .55.01.18.01.41-.07.64.49.24.57.81 1.98.88 2.12.07.14.12.31.02.5-.1.19-.15.31-.29.48-.14.17-.3.37-.43.5-.14.14-.29.29-.13.57.17.28.75 1.24 1.61 2.01 1.11.99 2.04 1.3 2.32 1.44.28.14.44.12.6-.07.17-.19.71-.83.9-1.11.19-.28.38-.24.64-.14.26.1 1.65.78 1.94.92.28.14.47.21.54.33.07.12.07.68-.17 1.36z"/></svg>}
+              />
               <SocialShareButton label="Facebook" bg="#1877F2" onClick={() => handleSocialShare('facebook')}
-                icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5 3.66 9.13 8.44 9.94v-7.03H7.9v-2.91h2.54V9.85c0-2.51 1.49-3.9 3.77-3.9 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.89h2.78l-.44 2.91h-2.34V22c4.78-.81 8.44-4.94 8.44-9.94z"/></svg>} />
+                icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5 3.66 9.13 8.44 9.94v-7.03H7.9v-2.91h2.54V9.85c0-2.51 1.49-3.9 3.77-3.9 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.89h2.78l-.44 2.91h-2.34V22c4.78-.81 8.44-4.94 8.44-9.94z"/></svg>}
+              />
               <SocialShareButton label="X" bg="#000000" onClick={() => handleSocialShare('twitter')}
-                icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M18.9 2H22l-7.6 8.68L23.3 22h-6.9l-5.4-7.07L4.8 22H1.7l8.1-9.26L1 2h7.1l4.9 6.47L18.9 2zm-1.2 18h1.9L7.4 4h-2l12.3 16z"/></svg>} />
+                icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M18.9 2H22l-7.6 8.68L23.3 22h-6.9l-5.4-7.07L4.8 22H1.7l8.1-9.26L1 2h7.1l4.9 6.47L18.9 2zm-1.2 18h1.9L7.4 4h-2l12.3 16z"/></svg>}
+              />
               <SocialShareButton label="Telegram" bg="#229ED9" onClick={() => handleSocialShare('telegram')}
-                icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M21.9 3.5L2.7 11c-.9.35-.9.9-.16 1.13l4.9 1.53 1.9 5.86c.24.66.42.92.86.92.34 0 .5-.16.7-.36l1.9-1.85 4.94 3.66c.9.5 1.55.24 1.78-.84L23.9 4.94c.32-1.35-.5-1.96-1.5-1.44zM8.8 14.4l9.2-5.8c.44-.27.83-.12.5.17l-7.5 6.83-.29 3.1z"/></svg>} />
+                icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M21.9 3.5L2.7 11c-.9.35-.9.9-.16 1.13l4.9 1.53 1.9 5.86c.24.66.42.92.86.92.34 0 .5-.16.7-.36l1.9-1.85 4.94 3.66c.9.5 1.55.24 1.78-.84L23.9 4.94c.32-1.35-.5-1.96-1.5-1.44zM8.8 14.4l9.2-5.8c.44-.27.83-.12.5.17l-7.5 6.83-.29 3.1z"/></svg>}
+              />
               <SocialShareButton label="LinkedIn" bg="#0A66C2" onClick={() => handleSocialShare('linkedin')}
-                icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.03-1.85-3.03-1.85 0-2.14 1.45-2.14 2.94v5.66H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>} />
+                icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.03-1.85-3.03-1.85 0-2.14 1.45-2.14 2.94v5.66H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>}
+              />
               <SocialShareButton label="Instagram" bg="#E1306C" onClick={() => handleSocialShare('instagram')}
-                icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>} />
+                icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>}
+              />
               <SocialShareButton label="TikTok" bg="#000000" onClick={() => handleSocialShare('tiktok')}
-                icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M16.6 5.82c-1.05-1.02-1.6-2.35-1.6-3.82h-3.15v13.44a2.68 2.68 0 1 1-2.68-2.68c.29 0 .57.05.83.13V9.7a5.8 5.8 0 0 0-.83-.06 5.83 5.83 0 1 0 5.83 5.83V9.06a7.1 7.1 0 0 0 4.15 1.33V7.24c-.99 0-1.9-.32-2.55-1.42z"/></svg>} />
+                icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M16.6 5.82c-1.05-1.02-1.6-2.35-1.6-3.82h-3.15v13.44a2.68 2.68 0 1 1-2.68-2.68c.29 0 .57.05.83.13V9.7a5.8 5.8 0 0 0-.83-.06 5.83 5.83 0 1 0 5.83 5.83V9.06a7.1 7.1 0 0 0 4.15 1.33V7.24c-.99 0-1.9-.32-2.55-1.42z"/></svg>}
+              />
               <SocialShareButton label="More" bg="#7E7E82" onClick={() => { if (navigator.share) { navigator.share({ title: shareTitle, url: shareUrl }) } else { navigator.clipboard.writeText(shareUrl); setShareCopied(true); setTimeout(() => setShareCopied(false), 2000) } }}
-                icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>} />
+                icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>}
+              />
             </div>
             {shareCopied && (
               <p style={{ fontSize: '12px', color: '#2E7D32', textAlign: 'center', marginTop: '14px' }}>Link copied — paste it into your Instagram/TikTok post or story.</p>
